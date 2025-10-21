@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+
+import { useState, FormEvent } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import {
   MapPin,
@@ -21,7 +23,7 @@ export default function RideSharePage() {
     seats: 1,
   });
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     alert(
       `Searching for rides from ${ride.from || "N/A"} to ${ride.to || "N/A"} on ${
@@ -39,7 +41,7 @@ export default function RideSharePage() {
             Share Rides. Save Money. <br /> Drive with Passion. ❤️
           </h1>
           <p className="text-gray-700 text-lg max-w-md mx-auto md:mx-0">
-            Experience the freedom of community rides — affordable, safe, and fun. 
+            Experience the freedom of community rides — affordable, safe, and fun.
             Every shared trip brings people closer and saves the planet.
           </p>
           <button className="bg-gradient-to-r from-rose-600 via-red-500 to-pink-500 text-white px-8 py-4 rounded-full text-lg font-bold hover:shadow-2xl transition-all inline-flex items-center group">
@@ -54,11 +56,15 @@ export default function RideSharePage() {
           transition={{ duration: 0.8 }}
           className="md:w-1/2 mt-12 md:mt-0"
         >
-          <img
-            src="https://images.unsplash.com/photo-1611421395112-87d0a9128900?auto=format&fit=crop&w=1200&q=80"
-            alt="Ride Sharing"
-            className="rounded-3xl shadow-2xl"
-          />
+          <div className="relative w-full h-[400px] rounded-3xl overflow-hidden shadow-2xl">
+            <Image
+              src="https://images.unsplash.com/photo-1611421395112-87d0a9128900?auto=format&fit=crop&w=1200&q=80"
+              alt="Ride Sharing"
+              fill
+              style={{ objectFit: "cover" }}
+              priority
+            />
+          </div>
         </motion.div>
       </section>
 
@@ -229,7 +235,7 @@ export default function RideSharePage() {
           ].map((t, idx) => (
             <div key={idx} className="bg-white/10 p-8 rounded-2xl backdrop-blur-lg shadow-lg">
               <Star className="text-yellow-300 mx-auto mb-4" />
-              <p className="italic mb-4">"{t.feedback}"</p>
+              <p className="italic mb-4">&quot;{t.feedback}&quot;</p>
               <p className="font-bold text-lg">{t.name}</p>
             </div>
           ))}
