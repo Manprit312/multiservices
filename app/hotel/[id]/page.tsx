@@ -17,13 +17,26 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Header from "@/components/HotelHeader";
+interface Hotel {
+  _id: string;
+  name: string;
+  location: string;
+  description?: string;
+  price: number;
+  rating?: number;
+  capacity?: number;
+  outsideFoodAllowed?: boolean;
+  amenities?: string[];
+  images?: string[];
+}
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function HotelSingle() {
   const { id } = useParams();
   const router = useRouter();
-  const [hotel, setHotel] = useState<any>(null);
+const [hotel, setHotel] = useState<Hotel | null>(null);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

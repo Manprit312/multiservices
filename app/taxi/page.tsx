@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { MapPin, Calendar, ArrowRight } from "lucide-react";
+import Image from "next/image";
 
 /**
  * Taxi page (Rapido-like) — put at src/app/taxi/page.tsx
@@ -42,8 +43,10 @@ export default function TaxiPage() {
         setResp({ ok: false, message: data.message || "Booking failed" });
       }
     } catch (err) {
+      console.error("Booking error:", err);
       setResp({ ok: false, message: "Network error — try again." });
     } finally {
+
       setLoading(false);
     }
   };
@@ -126,9 +129,8 @@ export default function TaxiPage() {
 
               {resp && (
                 <div
-                  className={`mt-4 text-sm font-medium text-center ${
-                    resp.ok ? "text-green-700 bg-green-50 rounded-lg p-3" : "text-red-700 bg-red-50 rounded-lg p-3"
-                  }`}
+                  className={`mt-4 text-sm font-medium text-center ${resp.ok ? "text-green-700 bg-green-50 rounded-lg p-3" : "text-red-700 bg-red-50 rounded-lg p-3"
+                    }`}
                 >
                   <div>{resp.message}</div>
                   {resp.ok && typeof resp.fare === "number" && (
@@ -148,11 +150,14 @@ export default function TaxiPage() {
         <div className="grid md:grid-cols-3 gap-6">
           <section className="bg-white rounded-2xl p-6 shadow">
             <div className="h-40 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?auto=format&fit=crop&w=900&q=80"
                 alt="bike taxi"
-                className="object-cover h-full w-full"
+                width={900}
+                height={600}
+                className="object-cover h-full w-full rounded-lg"
               />
+
             </div>
             <h3 className="mt-4 font-bold text-lg">Bike Taxi</h3>
             <p className="text-sm text-gray-600 mt-2">Fast & cheap city rides for single riders.</p>
@@ -163,11 +168,14 @@ export default function TaxiPage() {
 
           <section className="bg-white rounded-2xl p-6 shadow">
             <div className="h-40 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=900&q=80"
                 alt="auto"
-                className="object-cover h-full w-full"
+                width={900}
+                height={600}
+                className="object-cover h-full w-full rounded-lg"
               />
+
             </div>
             <h3 className="mt-4 font-bold text-lg">Auto</h3>
             <p className="text-sm text-gray-600 mt-2">Metered autos for short distances.</p>
@@ -178,11 +186,14 @@ export default function TaxiPage() {
 
           <section className="bg-white rounded-2xl p-6 shadow">
             <div className="h-40 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1549921296-3f1387d1f4c6?auto=format&fit=crop&w=900&q=80"
                 alt="cab"
-                className="object-cover h-full w-full"
+                width={900}
+                height={600}
+                className="object-cover h-full w-full rounded-lg"
               />
+
             </div>
             <h3 className="mt-4 font-bold text-lg">Cab</h3>
             <p className="text-sm text-gray-600 mt-2">Comfortable AC cabs for longer journeys.</p>
@@ -201,11 +212,14 @@ export default function TaxiPage() {
           <button className="mt-3 bg-black text-white px-6 py-3 rounded-full font-semibold">Start Earning</button>
         </div>
         <div className="rounded-2xl overflow-hidden bg-white shadow">
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1541963463532-d68292c34b19?auto=format&fit=crop&w=900&q=80"
             alt="drivers"
-            className="object-cover w-full h-56"
+            width={900}
+            height={600}
+            className="object-cover w-full h-56 rounded-2xl"
           />
+
         </div>
       </section>
 

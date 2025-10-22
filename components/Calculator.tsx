@@ -6,17 +6,26 @@ import { Sparkles, Calculator, CheckCircle2, Trash2, Clock } from "lucide-react"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+/* ✅ Define the data shape of your cleaning services */
+interface CleaningService {
+  _id: string;
+  name: string;
+  price: number;
+  duration: number; // in hours
+  customDuration?: number; // user-selected duration
+}
+
 export default function CleaningCostCalculator() {
-  const [services, setServices] = useState<any[]>([]);
-  const [selectedServices, setSelectedServices] = useState<any[]>([]);
+  const [services, setServices] = useState<CleaningService[]>([]);
+  const [selectedServices, setSelectedServices] = useState<CleaningService[]>([]);
   const [total, setTotal] = useState(0);
 
-  // Fetch cleaning services from API
+  // ✅ Fetch cleaning services from API
   useEffect(() => {
     async function fetchServices() {
       try {
         const res = await fetch(`${API_BASE}/api/cleaning`);
-        const data = await res.json();
+        const data: { success: boolean; cleanings: CleaningService[] } = await res.json();
         if (data.success) setServices(data.cleanings);
       } catch (err) {
         console.error("Error fetching cleaning services:", err);
@@ -25,20 +34,18 @@ export default function CleaningCostCalculator() {
     fetchServices();
   }, []);
 
-  // Calculate total cost
+  // ✅ Calculate total cost
   useEffect(() => {
     const newTotal = selectedServices.reduce((sum, s) => {
       const perHourRate =
-        s.duration && s.duration > 0
-          ? parseFloat(s.price || 0) / s.duration
-          : parseFloat(s.price || 0);
+        s.duration && s.duration > 0 ? s.price / s.duration : s.price;
       return sum + perHourRate * (s.customDuration || s.duration || 1);
     }, 0);
     setTotal(newTotal);
   }, [selectedServices]);
 
-  // Select or deselect a service
-  const toggleService = (service: any) => {
+  // ✅ Select or deselect a service
+  const toggleService = (service: CleaningService) => {
     setSelectedServices((prev) =>
       prev.some((s) => s._id === service._id)
         ? prev.filter((s) => s._id !== service._id)
@@ -46,7 +53,7 @@ export default function CleaningCostCalculator() {
     );
   };
 
-  // Update duration for a selected service
+  // ✅ Update duration
   const updateDuration = (id: string, value: number) => {
     setSelectedServices((prev) =>
       prev.map((s) =>
@@ -55,7 +62,7 @@ export default function CleaningCostCalculator() {
     );
   };
 
-  // Clear all selections
+  // ✅ Reset all
   const resetCalculator = () => {
     setSelectedServices([]);
     setTotal(0);
@@ -148,9 +155,7 @@ export default function CleaningCostCalculator() {
             className="bg-white p-6 rounded-2xl shadow-lg border border-emerald-100 flex flex-col justify-between"
           >
             <div>
-              <h3 className="font-bold text-xl text-gray-800 mb-6">
-                Summary
-              </h3>
+              <h3 className="font-bold text-xl text-gray-800 mb-6">Summary</h3>
 
               <div className="space-y-4 mb-6">
                 {selectedServices.length === 0 ? (
@@ -159,8 +164,8 @@ export default function CleaningCostCalculator() {
                   selectedServices.map((s) => {
                     const perHourRate =
                       s.duration && s.duration > 0
-                        ? parseFloat(s.price) / s.duration
-                        : parseFloat(s.price);
+                        ? s.price / s.duration
+                        : s.price;
                     const itemTotal = perHourRate * (s.customDuration || 1);
 
                     return (

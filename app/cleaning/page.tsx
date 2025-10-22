@@ -12,6 +12,21 @@ import {
   Sparkles,
   Star,
 } from "lucide-react";
+interface CleaningBanner {
+  _id: string;
+  title: string;
+  subtitle?: string;
+  image: string;
+}
+
+interface CleaningService {
+  _id: string;
+  name: string;
+  description?: string;
+  price: number;
+  duration?: number;
+  images?: string[];
+}
 import CleaningHeader from "@/components/CleaningHeader";
 import CleaningCostCalculator from "@/components/Calculator";
 
@@ -26,9 +41,11 @@ export default function CleaningPage() {
     hours: 2,
   });
 
-  const [banner, setBanner] = useState<any | null>(null);
+ 
   const [loading, setLoading] = useState(true);
-  const [services, setServices] = useState<any[]>([]);
+const [banner, setBanner] = useState<CleaningBanner | null>(null);
+const [services, setServices] = useState<CleaningService[]>([]);
+
   useEffect(() => {
     async function fetchServices() {
       try {
@@ -343,7 +360,7 @@ export default function CleaningPage() {
 
                 <div className="mt-6 grid gap-4">
                   {services.map((t) =>
-                    <div className="flex items-center justify-between bg-emerald-50 rounded-xl p-4">
+                    <div className="flex items-center justify-between bg-emerald-50 rounded-xl p-4"  key={t._id}>
                       <div>
                         <div className="font-semibold">{t.name}</div>
                         <div className="text-sm text-gray-600">{t.duration} hours</div>

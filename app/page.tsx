@@ -9,17 +9,13 @@ import {
   Hotel,
   Users,
   ArrowRight,
-  CheckCircle,
-  Star,
   Phone,
   Mail,
   MapPin,
-  Zap,
-  Shield,
-  Clock,
   Menu,
   X,
 } from "lucide-react";
+
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -30,16 +26,19 @@ const poppins = Poppins({
 
 export default function ServiHubHome() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+
+
+useEffect(() => {
+
+  const onScroll = () => setScrolled(window.scrollY > 50);
+  window.addEventListener("scroll", onScroll);
+  return () => window.removeEventListener("scroll", onScroll);
+}, []);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    const onScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+
 
   const services = [
     {
