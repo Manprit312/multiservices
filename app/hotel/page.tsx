@@ -1,66 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Search, Calendar, Users, Star } from "lucide-react";
-
-const PRIMARY = "bg-gradient-to-r from-[#0091B6] to-[#00C3D9]";
-
-const topLocations = [
-  {
-    title: "Tropical Paradise Resort",
-    location: "Goa, India",
-    price: "$129 / night",
-    img: "https://images.unsplash.com/photo-1501117716987-c8e1ecb2109d?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    title: "Oceanview Beach Hotel",
-    location: "Maldives",
-    price: "$299 / night",
-    img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    title: "City Center Suites",
-    location: "New York, USA",
-    price: "$199 / night",
-    img: "https://images.unsplash.com/photo-1559599101-f09722fb4948?auto=format&fit=crop&w=1200&q=80",
-  },
-];
-
-const testimonials = [
-  {
-    name: "Sophie Lee",
-    text: "Amazing stay, the staff were super helpful and the pool area was dreamy.",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    name: "Michael Brown",
-    text: "Comfortable rooms and excellent breakfast. Highly recommend.",
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    name: "Ayesha Khan",
-    text: "Perfect weekend getaway — everything was flawless.",
-    avatar: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=200&q=80",
-  },
-];
-
-const articles = [
-  {
-    title: "Top 10 Luxury Hotels Around the World",
-    img: "https://images.unsplash.com/photo-1590077428593-2fda9d91d7ef?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    title: "How to Get the Best Travel Deals This Season",
-    img: "https://images.unsplash.com/photo-1502920917128-1aa500764b43?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    title: "5 Hidden Gem Resorts You Must Visit",
-    img: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80",
-  },
-];
+import { Search, Calendar, Users } from "lucide-react";
+import Header from "@/components/HotelHeader";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function HotelPage() {
   const router = useRouter();
@@ -68,6 +15,23 @@ export default function HotelPage() {
   const [checkin, setCheckin] = useState("");
   const [checkout, setCheckout] = useState("");
   const [guests, setGuests] = useState(2);
+  const [hotels, setHotels] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchHotels() {
+      try {
+        const res = await fetch(`${API_BASE}/api/hotels`);
+        const data = await res.json();
+        setHotels(data.hotels);
+      } catch (err) {
+        console.error("Failed to fetch hotels", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchHotels();
+  }, []);
 
   function onSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -81,203 +45,192 @@ export default function HotelPage() {
   }
 
   return (
-    <main className="min-h-screen text-slate-900 antialiased">
+    <>
+    <Header/>
+    <main className="min-h-screen text-slate-900 antialiased bg-gradient-to-b from-blue-50 to-sky-100 relative overflow-hidden">
+
+      {/* Animated Floating Shapes */}
+      <motion.div
+        animate={{ y: [0, -20, 0] }}
+        transition={{ duration: 6, repeat: Infinity }}
+        className="absolute top-10 left-16 w-6 h-6 bg-blue-400/30 rounded-full"
+      />
+      <motion.div
+        animate={{ y: [0, 25, 0], x: [0, -15, 0] }}
+        transition={{ duration: 8, repeat: Infinity }}
+        className="absolute bottom-24 right-32 w-8 h-8 bg-sky-300/30 rounded-full"
+      />
+
       {/* HERO */}
-      <section className="relative">
-        <div className="relative h-[520px] w-full">
-          <Image
-            src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=2000&q=80"
-            alt="Hotel Hero"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-black/20"></div>
-        </div>
+<section
+  className="relative  overflow-hidden bg-gradient-to-b from-blue-50 to-sky-100"
+>
+  {/* Background Image */}
+  <div className="relative h-[800px] w-full">
+    <Image
+      src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=2000&q=80"
+      alt="Hotel Hero"
+      fill
+      className="object-cover"
+    />
+    <div className="absolute inset-0 bg-gradient-to-r from-blue-900/50 to-sky-800/20 backdrop-blur-[1px]" />
+  </div>
 
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="max-w-6xl mx-auto px-6 text-center text-white">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7 }}
-              className="text-4xl md:text-6xl font-extrabold leading-tight"
-            >
-              Discover Your Next <br />
-              <span className="text-sky-200">Handpicked Journey</span>
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.7 }}
-              className="mt-4 text-lg max-w-3xl mx-auto text-slate-100"
-            >
-              Explore top-rated hotels and curated experiences for your perfect stay.
-            </motion.p>
+  {/* Floating Shapes */}
+  <motion.div
+    animate={{ y: [0, -20, 0] }}
+    transition={{ duration: 6, repeat: Infinity }}
+    className="absolute top-10 left-16 w-6 h-6 bg-sky-400/40 rounded-full blur-sm z-0"
+  />
+  <motion.div
+    animate={{ y: [0, 25, 0], x: [0, -15, 0] }}
+    transition={{ duration: 8, repeat: Infinity }}
+    className="absolute bottom-10 right-32 w-8 h-8 bg-blue-400/40 rounded-full blur-sm z-0"
+  />
+  <motion.div
+    animate={{ rotate: [0, 360], y: [0, 10, 0] }}
+    transition={{ duration: 12, repeat: Infinity }}
+    className="absolute top-1/3 right-20 w-5 h-5 border-2 border-blue-300 rounded-full opacity-60 z-0"
+  />
 
-            {/* Search Form */}
-            <motion.form
-              onSubmit={onSearch}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="mt-8 bg-white rounded-3xl shadow-xl flex flex-col md:flex-row gap-4 p-4 md:p-6 justify-center"
-            >
-              <div className="flex items-center gap-3 border rounded-full px-4 py-3 flex-1">
-                <Search className="text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Where to?"
-                  className="w-full outline-none text-sm text-black"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center gap-3 border rounded-full px-4 py-3">
-                <Calendar className="text-slate-400" />
-                <input
-                  type="date"
-                  value={checkin}
-                  onChange={(e) => setCheckin(e.target.value)}
-                  className="outline-none text-sm text-black"
-                />
-              </div>
-              <div className="flex items-center gap-3 border rounded-full px-4 py-3">
-                <Calendar className="text-slate-400" />
-                <input
-                  type="date"
-                  value={checkout}
-                  onChange={(e) => setCheckout(e.target.value)}
-                  className="outline-none text-sm text-black"
-                />
-              </div>
-              <div className="flex items-center gap-3 border rounded-full px-4 py-3">
-                <Users className="text-slate-400 " />
-                <select
-                  value={guests}
-                  onChange={(e) => setGuests(Number(e.target.value))}
-                  className="outline-none text-sm text-black"
-                >
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <option key={n}>{n} Guests</option>
-                  ))}
-                </select>
-              </div>
-              <button
-                type="submit"
-                className="bg-sky-600 hover:bg-sky-700 text-white px-6 py-3 rounded-full font-semibold"
-              >
-                Search
-              </button>
-            </motion.form>
-          </div>
-        </div>
-      </section>
+  {/* HERO CONTENT */}
+  <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white z-20">
+    <motion.h1
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1 }}
+      className="text-5xl md:text-6xl font-extrabold leading-tight drop-shadow-xl"
+    >
+      Discover Your Next <br />
+      <span className="text-sky-300">Handpicked Journey</span>
+    </motion.h1>
 
-      {/* TOP LOCATIONS */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <h2 className="text-3xl font-extrabold mb-8">Our Top Locations</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {topLocations.map((hotel, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-white rounded-2xl shadow-lg overflow-hidden"
-            >
-              <div className="relative h-56">
-                <Image
-                  src={hotel.img}
-                  alt={hotel.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="font-bold text-lg">{hotel.title}</h3>
-                <p className="text-sm text-slate-600">{hotel.location}</p>
-                <p className="mt-2 text-sky-600 font-semibold">{hotel.price}</p>
-              </div>
-            </motion.div>
+    <motion.p
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2, duration: 1 }}
+      className="mt-4 text-lg text-slate-100 max-w-2xl mx-auto"
+    >
+      Explore top-rated hotels and curated experiences for your perfect stay.
+    </motion.p>
+
+    {/* Search Form - fixed position above wave */}
+    <motion.form
+      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ delay: 0.4, duration: 0.8 }}
+      className="mt-10 bg-white/50 backdrop-blur-md border border-blue/80 rounded-full shadow-2xl flex flex-col md:flex-row gap-4 p-4 md:p-6 justify-center z-30"
+    >
+      <div className="flex items-center gap-3 border rounded-full px-4 py-3 flex-1 bg-white/90">
+        <Search className="text-slate-400" />
+        <input
+          type="text"
+          placeholder="Where to?"
+          className="w-full outline-none text-sm text-black font-medium bg-transparent"
+        />
+      </div>
+      <div className="flex items-center gap-3 border rounded-full px-4 py-3 bg-white/90">
+        <Calendar className="text-slate-400" />
+        <input
+          type="date"
+          className="outline-none text-sm text-black font-medium bg-transparent"
+        />
+      </div>
+      <div className="flex items-center gap-3 border rounded-full px-4 py-3 bg-white/90">
+        <Calendar className="text-slate-400" />
+        <input
+          type="date"
+          className="outline-none text-sm text-black font-medium bg-transparent"
+        />
+      </div>
+      <div className="flex items-center gap-3 border rounded-full px-4 py-3 bg-white/90">
+        <Users className="text-slate-400" />
+        <select className="outline-none text-sm text-black font-medium bg-transparent">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <option key={n}>{n} Guests</option>
           ))}
-        </div>
-      </section>
+        </select>
+      </div>
+      <button
+        type="submit"
+        className="bg-gradient-to-r from-blue-600 to-sky-500 hover:from-sky-600 hover:to-blue-700 text-white px-8 py-3 rounded-full font-semibold shadow-md transition-all duration-300 hover:scale-105"
+      >
+        Search
+      </button>
+    </motion.form>
+  </div>
 
-      {/* EXPERIENCE */}
-      <section className="max-w-6xl mx-auto px-6 py-16 grid md:grid-cols-2 gap-10 items-center">
-        <div>
-          <h2 className="text-3xl font-extrabold mb-4">Get The Best Travel Experience</h2>
-          <p className="text-slate-600 mb-6">
-            Enjoy luxury stays and unforgettable experiences, handpicked for your comfort.
-          </p>
-          <ul className="space-y-3 text-slate-700">
-            <li>✔ Verified partners and trusted hosts</li>
-            <li>✔ Seamless booking and 24/7 support</li>
-          </ul>
-        </div>
-        <div className="rounded-2xl overflow-hidden shadow-lg">
-          <Image
-            src="https://images.unsplash.com/photo-1578894381169-fb9b8405e2d1?auto=format&fit=crop&w=1200&q=80"
-            alt="Travel Experience"
-            width={600}
-            height={400}
-            className="object-cover"
-          />
-        </div>
-      </section>
+  {/* Animated Wave - push behind form */}
+  <div className="absolute bottom-0 left-0 right-0 overflow-hidden z-10 pointer-events-none">
+    <motion.svg
+      viewBox="0 0 1440 320"
+      animate={{ y: [0, 10, 0] }}
+      transition={{ duration: 6, repeat: Infinity }}
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-full"
+    >
+      <path
+        fill="#e0f2fe"
+        fillOpacity="1"
+        d="M0,160L48,165.3C96,171,192,181,288,176C384,171,480,149,576,149.3C672,149,768,171,864,192C960,213,1056,235,1152,234.7C1248,235,1344,213,1392,202.7L1440,192L1440,320L0,320Z"
+      ></path>
+    </motion.svg>
+  </div>
+</section>
 
-      {/* ARTICLES */}
+      {/* TOP LOCATIONS (Dynamic) */}
       <section className="max-w-6xl mx-auto px-6 py-16">
-        <h2 className="text-3xl font-extrabold mb-6">Latest News & Articles</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {articles.map((a, i) => (
-            <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-lg">
-              <div className="relative h-44">
-                <Image src={a.img} alt={a.title} fill className="object-cover" />
-              </div>
-              <div className="p-6">
-                <h3 className="font-semibold mb-2">{a.title}</h3>
-                <p className="text-sm text-slate-600">Discover amazing destinations with our travel experts.</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+        <h2 className="text-3xl font-extrabold mb-8 text-slate-800">Our Top Locations</h2>
+        {loading ? (
+          <p className="text-center text-slate-500">Loading hotels...</p>
+        ) : hotels.length === 0 ? (
+          <p className="text-center text-slate-500">No hotels found.</p>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-6">
+           {hotels.map((hotel, i) => (
+  <motion.div
+    key={hotel._id || i}
+    initial={{ opacity: 0, y: 10 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ delay: i * 0.1 }}
+    whileHover={{ scale: 1.02 }}
+    className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition relative cursor-pointer group"
+  >
+    <Link href={`/hotel/${hotel._id}`} className="block w-full h-full">
+      {/* Image Section */}
+      <div className="relative h-56 overflow-hidden">
+        <Image
+          src={hotel.images?.[0] || "/default-hotel.jpg"}
+          alt={hotel.name}
+          fill
+          className="object-cover group-hover:scale-110 transition-transform duration-500"
+        />
+        {/* Overlay gradient on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      </div>
 
-      {/* FOOTER */}
-      <footer className="bg-slate-900 text-white py-12">
-        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-10">
-          <div>
-            <h3 className="text-2xl font-extrabold">Turmet</h3>
-            <p className="text-slate-300 mt-3">
-              Your travel companion for unforgettable journeys.
-            </p>
+      {/* Hotel Info */}
+      <div className="p-6">
+        <h3 className="font-bold text-lg text-slate-800 group-hover:text-sky-600 transition">
+          {hotel.name}
+        </h3>
+        <p className="text-sm text-slate-600">{hotel.location}</p>
+        <p className="text-sm text-slate-600">
+          {hotel.description?.substring(0, 100) + "..."}
+        </p>
+        <p className="mt-2 text-sky-600 font-semibold">
+          ${hotel.price} / night
+        </p>
+      </div>
+    </Link>
+  </motion.div>
+))}
+
           </div>
-          <div>
-            <h4 className="font-semibold mb-3">Quick Links</h4>
-            <ul className="text-slate-300 text-sm space-y-2">
-              <li>About</li>
-              <li>Contact</li>
-              <li>FAQ</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-3">Newsletter</h4>
-            <div className="flex gap-2">
-              <input
-                placeholder="Your email"
-                className="rounded-full px-4 py-2 text-slate-800"
-              />
-              <button className="bg-sky-600 px-4 py-2 rounded-full font-semibold">
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="text-center text-slate-400 mt-10 border-t border-slate-800 pt-6 text-sm">
-          © {new Date().getFullYear()} Turmet — All rights reserved.
-        </div>
-      </footer>
+        )}
+      </section>
     </main>
+    </>
+
   );
 }
