@@ -9,13 +9,30 @@ import {
   Hotel,
   Users,
   ArrowRight,
-  Phone,
-  Mail,
-  MapPin,
+
   Menu,
   X,
 } from "lucide-react";
+import { Star, Cloud, Circle, Triangle, Square } from "lucide-react";
 
+const floatingIcons = { Star, Cloud, Circle, Triangle, Square };
+
+import Image from "next/image";
+import ContactSection from "@/components/ContactSection";
+interface BannerForm {
+  title: string;
+  subtitle: string;
+  buttonText: string;
+  buttonLink: string;
+  gradientStart: string;
+  gradientEnd: string;
+}
+interface BannerData extends BannerForm {
+  _id: string;
+  image: string;
+  metrics?: { label: string; value: string }[];
+}
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -28,18 +45,35 @@ export default function ServiHubHome() {
   const router = useRouter();
 
 
-useEffect(() => {
+  useEffect(() => {
 
-  const onScroll = () => setScrolled(window.scrollY > 50);
-  window.addEventListener("scroll", onScroll);
-  return () => window.removeEventListener("scroll", onScroll);
-}, []);
-
+    const onScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+const [banner, setBanner] = useState<BannerData | null>(null);
+  // const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
 
-
+  useEffect(() => {
+    async function fetchBanner() {
+      try {
+        const res = await fetch(`${API_BASE}/api/home-banners`);
+        const data = await res.json();
+        if (data.success && data.banners.length > 0) {
+          console.log(data.banners[0])
+          setBanner(data.banners[0]);
+        }
+      } catch (err) {
+        console.error("Error fetching banner:", err);
+      } finally {
+        // setLoading(false);
+      }
+    }
+    fetchBanner();
+  }, []);
   const services = [
     {
       id: "cleaning",
@@ -139,9 +173,8 @@ useEffect(() => {
 
       {/* NAV */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? "bg-white/80 backdrop-blur-md shadow-md" : "bg-transparent"
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/80 backdrop-blur-md shadow-md" : "bg-transparent"
+          }`}
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push("/")}>
@@ -154,10 +187,10 @@ useEffect(() => {
           <div className="hidden md:flex items-center gap-6">
             <button onClick={() => router.push("/")} className="text-sm font-medium hover:text-slate-700">Home</button>
             <button onClick={() => router.push("/cleaning")} className="text-sm font-medium hover:text-slate-700">Cleaning</button>
-            <button onClick={() => router.push("/taxi")} className="text-sm font-medium hover:text-slate-700">Taxi</button>
+            {/* <button onClick={() => router.push("/taxi")} className="text-sm font-medium hover:text-slate-700">Taxi</button> */}
             <button onClick={() => router.push("/hotel")} className="text-sm font-medium hover:text-slate-700">Hotel</button>
-            <button onClick={() => router.push("/rideshare")} className="text-sm font-medium hover:text-slate-700">RideShare</button>
-            <button className="ml-4 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 font-semibold">Get Started</button>
+            {/* <button onClick={() => router.push("/rideshare")} className="text-sm font-medium hover:text-slate-700">RideShare</button> */}
+            <button onClick={() => document.getElementById("contactus")?.scrollIntoView({ behavior: "smooth" })}className="ml-4 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 font-semibold">Get Started</button>
           </div>
 
           <button className="md:hidden" onClick={() => setMobileMenuOpen((s) => !s)}>
@@ -170,9 +203,9 @@ useEffect(() => {
             <div className="space-y-2">
               <button onClick={() => { router.push("/"); setMobileMenuOpen(false); }} className="block w-full text-left">Home</button>
               <button onClick={() => { router.push("/cleaning"); setMobileMenuOpen(false); }} className="block w-full text-left">Cleaning</button>
-              <button onClick={() => { router.push("/taxi"); setMobileMenuOpen(false); }} className="block w-full text-left">Taxi</button>
+              {/* <button onClick={() => { router.push("/taxi"); setMobileMenuOpen(false); }} className="block w-full text-left">Taxi</button> */}
               <button onClick={() => { router.push("/hotel"); setMobileMenuOpen(false); }} className="block w-full text-left">Hotel</button>
-              <button onClick={() => { router.push("/rideshare"); setMobileMenuOpen(false); }} className="block w-full text-left">RideShare</button>
+              {/* <button onClick={() => { router.push("/rideshare"); setMobileMenuOpen(false); }} className="block w-full text-left">RideShare</button> */}
             </div>
           </div>
         )}
@@ -181,6 +214,11 @@ useEffect(() => {
       {/* HERO */}
       <header className="relative overflow-hidden pt-20">
         {/* Off-white gradient background */}
+        {/* Floating pink-orange moving icons */}
+
+
+
+
         <div
           className="absolute inset-0"
           style={{
@@ -196,7 +234,48 @@ useEffect(() => {
           opacity: 0.22,
           transform: "rotate(12deg)",
         }}></div>
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+         {(
+  [
+    "Star",
+    "Cloud",
+    "Circle",
+    "Triangle",
+    "Square",
+    "Star",
+    "Cloud",
+    "Circle",
+    "Triangle",
+    "Square",
+  ] as (keyof typeof floatingIcons)[]
+).map((IconName, i) => {
+  const Icon = floatingIcons[IconName];
+  const top = Math.random() * 100;
+  const left = Math.random() * 100;
+  const size = Math.floor(Math.random() * 22) + 12;
+  const color = Math.random() > 0.5 ? "#ff6b6b" : "#ff9f43";
+  const duration = Math.random() * 6 + 6;
+  const delay = Math.random() * 5;
+  const rotate = Math.random() > 0.5;
 
+  return (
+    <Icon
+      key={i}
+      className="absolute opacity-40"
+      style={{
+        top: `${top}%`,
+        left: `${left}%`,
+        color,
+        width: `${size}px`,
+        height: `${size}px`,
+        animation: `${rotate ? "float-rotate" : "float"} ${duration}s ease-in-out infinite`,
+        animationDelay: `${delay}s`,
+      }}
+    />
+  );
+})}
+
+        </div>
         <div aria-hidden className="absolute right-6 top-20 w-44 h-44 rounded-full float-blob" style={{
           background: "linear-gradient(135deg,#ff8ab8,#f0a6ff)",
           filter: "blur(24px)",
@@ -214,12 +293,12 @@ useEffect(() => {
         <div className="absolute left-0 right-0 top-0 h-[420px] pointer-events-none">
           {/* Wave 1 - front */}
           <svg viewBox="0 0 1440 320" className="w-[240%] translate-x-0 wave-1" style={{ height: 420, overflow: "visible" }} preserveAspectRatio="xMinYMin slice" aria-hidden>
-            <path fill="#fff" d="M0,256L48,234.7C96,213,192,171,288,138.7C384,107,480,85,576,74.7C672,64,768,64,864,96C960,128,1056,192,1152,197.3C1248,203,1344,149,1392,122.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" />
+            <path fill="#ffffff77" d="M0,256L48,234.7C96,213,192,171,288,138.7C384,107,480,85,576,74.7C672,64,768,64,864,96C960,128,1056,192,1152,197.3C1248,203,1344,149,1392,122.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" />
           </svg>
 
           {/* Wave 2 - behind */}
           <svg viewBox="0 0 1440 320" className="w-[240%] translate-x-0 wave-2" style={{ height: 380, opacity: 0.85, transform: "translateY(50px)" }} preserveAspectRatio="xMinYMin slice" aria-hidden>
-            <path fill="#fff" d="M0,192L48,197.3C96,203,192,213,288,213.3C384,213,480,203,576,197.3C672,192,768,192,864,181.3C960,171,1056,149,1152,144C1248,139,1344,149,1392,154.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" />
+            <path fill="#ffffffd1" d="M0,192L48,197.3C96,203,192,213,288,213.3C384,213,480,203,576,197.3C672,192,768,192,864,181.3C960,171,1056,149,1152,144C1248,139,1344,149,1392,154.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" />
           </svg>
         </div>
 
@@ -233,36 +312,46 @@ useEffect(() => {
               </div>
 
               <h1 className="text-4xl md:text-6xl font-extrabold leading-tight hero-heading">
-                All Services, <br /> One Beautiful Platform
+                {banner?.title}
               </h1>
 
               <p className="max-w-xl text-slate-700">
-                One app to book home cleaning, taxi rides, hotel stays and ride-sharing — fast, trusted professionals and delightful UX.
+                {banner?.subtitle}
               </p>
 
               <div className="flex items-center gap-4">
                 <button onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold shadow-lg">
-                  Explore Services <ArrowRight className="w-4 h-4" />
+                  {banner?.buttonText} <ArrowRight className="w-4 h-4" />
                 </button>
                 <a className="text-sm text-slate-700/90 hover:underline cursor-pointer" onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}>See pricing</a>
               </div>
 
               <div className="mt-6 grid grid-cols-2 gap-4 max-w-xs">
-                <div className="bg-white/90 rounded-xl p-3 text-slate-900 text-center shadow">
-                  <div className="text-xs font-medium">Trusted Pros</div>
-                  <div className="text-lg font-extrabold">10k+</div>
-                </div>
-                <div className="bg-white/90 rounded-xl p-3 text-slate-900 text-center shadow">
-                  <div className="text-xs font-medium">Avg Rating</div>
-                  <div className="text-lg font-extrabold">4.9★</div>
-                </div>
+
+                {banner?.metrics?.map((t,i) => <div key={i} className="bg-white/90 rounded-xl p-3 text-slate-900 text-center shadow">
+                  <div className="text-xs font-medium">{t.label}</div>
+                  <div className="text-lg font-extrabold">{t.value}</div>
+                </div>)}
               </div>
             </div>
 
             {/* Right: phone mockup + floating elements */}
             <div className="relative flex justify-center md:justify-end">
-              <div className="w-[320px] md:w-[420px] lg:w-[520px] rounded-3xl overflow-hidden shadow-2xl transform transition-all">
-                <img src="https://images.unsplash.com/photo-1523475496153-3d6cc80ea0c4?auto=format&fit=crop&w=800&q=80" alt="app mockup" className="w-full h-full object-cover" />
+              <div className="w-[320px] md:w-[420px] lg:w-[520px] rounded-3xl overflow-hidden transform transition-all">
+            {banner?.image ? (
+  <Image
+    src={banner.image}
+    alt="app mockup"
+    height={100}
+    width={100}
+    className="w-full h-full object-cover"
+  />
+) : (
+  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-500">
+    No image available
+  </div>
+)}
+
               </div>
 
               <div className="absolute -left-6 -top-8 w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-lg float-blob">
@@ -401,17 +490,17 @@ useEffect(() => {
           </div>
         </div>
       </section>
-
+      <ContactSection />
       {/* CONTACT */}
-      <section id="contact" className="max-w-6xl mx-auto px-6 py-20">
+      {/* <section id="contact" className="max-w-6xl mx-auto px-6 py-20">
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div>
             <h3 className="text-3xl font-extrabold mb-4">Contact Us</h3>
             <p className="text-slate-600 mb-6">Have a question? Reach out — we respond fast.</p>
             <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-3"><Phone className="w-4 h-4 text-pink-500"/> <span>+91 98765 43210</span></div>
-              <div className="flex items-center gap-3"><Mail className="w-4 h-4 text-pink-500"/> <span>hello@servihub.com</span></div>
-              <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-pink-500"/> <span>Ludhiana, Punjab</span></div>
+              <div className="flex items-center gap-3"><Phone className="w-4 h-4 text-pink-500" /> <span>+91 98765 43210</span></div>
+              <div className="flex items-center gap-3"><Mail className="w-4 h-4 text-pink-500" /> <span>hello@servihub.com</span></div>
+              <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-pink-500" /> <span>Ludhiana, Punjab</span></div>
             </div>
           </div>
 
@@ -428,7 +517,7 @@ useEffect(() => {
             </div>
           </form>
         </div>
-      </section>
+      </section> */}
 
       {/* FOOTER */}
       <footer className="bg-slate-900 text-white py-12">
@@ -442,9 +531,9 @@ useEffect(() => {
             <h4 className="font-semibold mb-3">Services</h4>
             <ul className="text-sm text-slate-300 space-y-2">
               <li className="cursor-pointer" onClick={() => router.push("/cleaning")}>Cleaning</li>
-              <li className="cursor-pointer" onClick={() => router.push("/taxi")}>Taxi</li>
+              {/* <li className="cursor-pointer" onClick={() => router.push("/taxi")}>Taxi</li> */}
               <li className="cursor-pointer" onClick={() => router.push("/hotel")}>Hotel</li>
-              <li className="cursor-pointer" onClick={() => router.push("/rideshare")}>RideShare</li>
+              {/* <li className="cursor-pointer" onClick={() => router.push("/rideshare")}>RideShare</li> */}
             </ul>
           </div>
 
@@ -460,3 +549,16 @@ useEffect(() => {
     </div>
   );
 }
+<style jsx>{`
+  @keyframes float {
+    0% { transform: translateY(0px); opacity: 0.4; }
+    50% { transform: translateY(-25px); opacity: 0.7; }
+    100% { transform: translateY(0px); opacity: 0.4; }
+  }
+
+  @keyframes float-rotate {
+    0% { transform: translateY(0px) rotate(0deg); opacity: 0.5; }
+    50% { transform: translateY(-25px) rotate(25deg); opacity: 0.8; }
+    100% { transform: translateY(0px) rotate(0deg); opacity: 0.5; }
+  }
+`}</style>

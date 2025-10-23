@@ -12,7 +12,7 @@ export default function CleaningHeader() {
     { name: "Home", icon: <Home size={18} />, href: "/" },
     { name: "Cleaning", icon: <BrushCleaning size={18} />, href: "/cleaning" },
     { name: "Packages", icon: <Leaf size={18} />, href: "/cleaning/packages" },
-    { name: "Contact", icon: <Phone size={18} />, href: "/contact" },
+    { name: "Contact", icon: <Phone size={18} />,  href:"#booking" },
   ];
 
   return (
