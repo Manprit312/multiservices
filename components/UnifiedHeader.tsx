@@ -60,7 +60,6 @@ function UnifiedHeaderContent() {
   const [isOpen, setIsOpen] = useState(false);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-  const [selectedProviderData, setSelectedProviderData] = useState<Provider | null>(null);
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const providerId = searchParams?.get("provider");
@@ -78,12 +77,13 @@ function UnifiedHeaderContent() {
             const provider = data.providers.find((p: Provider) => p._id === providerId);
             if (provider) {
               setSelectedProvider(providerId);
-              setSelectedProviderData(provider);
             }
           }
         }
       } catch (err) {
-        console.error("Error fetching providers:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error fetching providers:", err);
+        }
       }
     }
     fetchProviders();
@@ -92,8 +92,6 @@ function UnifiedHeaderContent() {
   // Update selected provider when changed
   const handleProviderChange = (providerId: string) => {
     setSelectedProvider(providerId);
-    const provider = providers.find((p) => p._id === providerId);
-    setSelectedProviderData(provider || null);
     // Update URL with provider
     const currentPath = pathname || "/";
     window.location.href = `${currentPath}?provider=${providerId}`;

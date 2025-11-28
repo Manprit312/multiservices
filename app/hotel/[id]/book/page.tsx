@@ -17,7 +17,7 @@ import {
   MapPin,
   Star,
   X,
-  Clock,
+
 } from "lucide-react";
 import UnifiedHeader from "@/components/UnifiedHeader";
 
@@ -77,7 +77,9 @@ function HotelBookingContent() {
           setHotel(data.hotel);
         }
       } catch (err) {
-        console.error("Failed to fetch hotel:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to fetch hotel:", err);
+        }
       } finally {
         setLoading(false);
       }
@@ -152,10 +154,12 @@ function HotelBookingContent() {
       } else {
         alert(data.message || "Booking failed. Please try again.");
       }
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong. Please try again.");
-    } finally {
+      } catch (err) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Booking error:", err);
+        }
+        alert("Something went wrong. Please try again.");
+      } finally {
       setBookingLoading(false);
     }
   };
@@ -183,11 +187,6 @@ function HotelBookingContent() {
   }
 
   const minDate = new Date().toISOString().split("T")[0];
-  const maxCheckIn = bookingData.checkIn
-    ? new Date(new Date(bookingData.checkIn).getTime() + 365 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0]
-    : "";
 
   return (
     <>

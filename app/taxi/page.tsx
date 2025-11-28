@@ -4,28 +4,22 @@ import React, { useState, Suspense, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { 
   MapPin, 
-  Calendar, 
   ArrowRight, 
   Bike, 
   Car, 
   Star, 
-  Circle, 
-  Triangle,
   Navigation,
-  Clock,
   DollarSign,
-  User,
   CreditCard,
   Wallet,
   CheckCircle,
   X,
-  Search,
   ChevronRight
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { Truck, Facebook, Twitter, Instagram } from "lucide-react";
+import { motion } from "framer-motion";
+import { Truck } from "lucide-react";
 import UnifiedHeader from "@/components/UnifiedHeader";
 
 interface VehicleType {
@@ -131,10 +125,13 @@ function TaxiPageContent() {
           setSelectedProvider(data.provider);
         }
       } catch (err) {
-        console.error("Failed to fetch provider:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to fetch provider:", err);
+        }
       }
     }
     fetchProvider();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [providerId]);
 
   // Calculate fare and distance
@@ -191,7 +188,9 @@ function TaxiPageContent() {
         alert(data.message || "Booking failed. Please try again.");
       }
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV === 'development') {
+        console.error(err);
+      }
       alert("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -544,7 +543,7 @@ function TaxiPageContent() {
                         ].map((method) => (
                           <button
                             key={method.id}
-                            onClick={() => setPaymentMethod(method.id as any)}
+                            onClick={() => setPaymentMethod(method.id as "cash" | "card" | "wallet")}
                             className={`p-4 rounded-xl border-2 transition-all ${
                               paymentMethod === method.id
                                 ? "border-yellow-500 bg-yellow-50"
@@ -620,7 +619,7 @@ function TaxiPageContent() {
                       <Navigation className="w-5 h-5 text-yellow-600 animate-pulse" />
                       <span className="font-semibold">Driver is {selectedDriver?.distance} km away</span>
                     </div>
-                    <p className="text-sm text-gray-600">You'll be notified when your driver arrives</p>
+                    <p className="text-sm text-gray-600">You&lsquo;ll be notified when your driver arrives</p>
                   </div>
 
                   <button

@@ -9,7 +9,6 @@ import {
   Search, 
   Calendar, 
   Users, 
-  SlidersHorizontal, 
   Star, 
   X,
   ArrowRight,
@@ -89,7 +88,9 @@ function HotelPageContent() {
           setSelectedProvider(data.provider);
         }
       } catch (err) {
-        console.error("Failed to fetch provider:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to fetch provider:", err);
+        }
       }
     }
     fetchProvider();
@@ -117,7 +118,9 @@ function HotelPageContent() {
         const data: { success: boolean; hotels: Hotel[] } = await res.json();
         if (data.success) setHotels(data.hotels);
       } catch (err) {
-        console.error("Failed to fetch hotels", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to fetch hotels", err);
+        }
       } finally {
         setLoading(false);
       }

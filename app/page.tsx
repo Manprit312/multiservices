@@ -9,8 +9,6 @@ import {
   Hotel,
   Users,
   ArrowRight,
-  Menu,
-  X,
   Star,
   BrushCleaning,
 } from "lucide-react";
@@ -76,7 +74,8 @@ export default function ServiHubHome() {
       const providerId = params.get("provider");
       setSelectedProvider(providerId);
     }
-  }, [typeof window !== "undefined" ? window.location.search : ""]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Fetch available services for selected provider
   useEffect(() => {
@@ -100,7 +99,9 @@ export default function ServiHubHome() {
           });
         }
       } catch (err) {
-        console.error("Error fetching provider services:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error fetching provider services:", err);
+        }
         setAvailableServices({ hasCleaning: false, hasHotels: false, hasRides: false, counts: { cleaning: 0, hotels: 0, rides: 0 } });
       } finally {
         setLoadingServices(false);
@@ -116,11 +117,13 @@ export default function ServiHubHome() {
         const res = await fetch(`${API_BASE}/api/home-banners`);
         const data = await res.json();
         if (data.success && data.banners.length > 0) {
-          console.log(data.banners[0])
+          // Banner data loaded
           setBanner(data.banners[0]);
         }
       } catch (err) {
-        console.error("Error fetching banner:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error fetching banner:", err);
+        }
       } finally {
         // setLoading(false);
       }
@@ -137,46 +140,15 @@ export default function ServiHubHome() {
           setProviders(data.providers);
         }
       } catch (err) {
-        console.error("Error fetching providers:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error fetching providers:", err);
+        }
       }
     }
     fetchProviders();
   }, []);
 
-  const services = [
-    {
-      id: "cleaning",
-      icon: <Sparkles className="w-10 h-10" />,
-      title: "Home Cleaning",
-      desc: "Professional cleaning for home & office",
-      hue: "from-emerald-400 to-emerald-600",
-      route: "/cleaning",
-    },
-    {
-      id: "taxi",
-      icon: <Car className="w-10 h-10" />,
-      title: "Taxi Service",
-      desc: "Bike, Auto & Cab — quick booking",
-      hue: "from-yellow-400 to-yellow-600",
-      route: "/taxi",
-    },
-    {
-      id: "hotel",
-      icon: <Hotel className="w-10 h-10" />,
-      title: "Hotel Booking",
-      desc: "Handpicked hotels & best rates",
-      hue: "from-blue-400 to-indigo-600",
-      route: "/hotel",
-    },
-    {
-      id: "rideshare",
-      icon: <Users className="w-10 h-10" />,
-      title: "Ride Sharing",
-      desc: "Share rides, save money & help the planet",
-      hue: "from-pink-400 to-rose-600",
-      route: "/rideshare",
-    },
-  ];
+  // Service configuration removed - now dynamically generated from provider services
 
   return (
     <div
@@ -544,7 +516,7 @@ export default function ServiHubHome() {
             <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-3 text-gray-800">No Services Available</h2>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              This provider hasn't added any services yet. Please check back later or select another provider.
+              This provider hasn&apos;t added any services yet. Please check back later or select another provider.
             </p>
             <button
               onClick={() => {

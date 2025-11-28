@@ -49,7 +49,9 @@ function HotelSingleContent() {
         const data = await res.json();
         if (data.success) setHotel(data.hotel);
       } catch (err) {
-        console.error("Failed to fetch hotel:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to fetch hotel:", err);
+        }
       } finally {
         setLoading(false);
       }

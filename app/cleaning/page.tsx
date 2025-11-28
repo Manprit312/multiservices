@@ -67,7 +67,6 @@ function CleaningPageContent() {
 const [banner, setBanner] = useState<CleaningBanner | null>(null);
 const [services, setServices] = useState<CleaningService[]>([]);
 const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
-const [allProviders, setAllProviders] = useState<Provider[]>([]);
 
   useEffect(() => {
     async function fetchProviders() {
@@ -75,7 +74,6 @@ const [allProviders, setAllProviders] = useState<Provider[]>([]);
         const res = await fetch(`${API_BASE}/api/providers?isActive=true`);
         const data = await res.json();
         if (data.success) {
-          setAllProviders(data.providers);
           // If providerId is in URL, find and set the provider
           if (providerId) {
             const provider = data.providers.find((p: Provider) => p._id === providerId);
@@ -85,7 +83,9 @@ const [allProviders, setAllProviders] = useState<Provider[]>([]);
           }
         }
       } catch (err) {
-        console.error("Failed to fetch providers:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to fetch providers:", err);
+        }
       }
     }
     fetchProviders();
@@ -110,7 +110,9 @@ const [allProviders, setAllProviders] = useState<Provider[]>([]);
           setServices([]);
         }
       } catch (err) {
-        console.error("Failed to fetch services:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to fetch services:", err);
+        }
         setServices([]);
       } finally {
         setLoading(false);
@@ -130,7 +132,9 @@ const [allProviders, setAllProviders] = useState<Provider[]>([]);
           setBanner(null);
         }
       } catch (err) {
-        console.error("Failed to fetch banner:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to fetch banner:", err);
+        }
       } finally {
         setLoading(false);
       }
@@ -528,7 +532,7 @@ const [allProviders, setAllProviders] = useState<Provider[]>([]);
               <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-700 mb-2">No Services Available</h3>
               <p className="text-gray-600 mb-6">
-                {selectedProvider?.name} doesn't have any services listed yet. Please check back later or select another provider.
+                {selectedProvider?.name} doesn&lsquo;t have any services listed yet. Please check back later or select another provider.
               </p>
               <button
                 onClick={() => router.push("/")}
