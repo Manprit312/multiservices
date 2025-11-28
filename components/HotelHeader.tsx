@@ -1,18 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Home, Hotel, Car, Sparkles, Phone, Menu, X } from "lucide-react";
 import Link from "next/link";
 
-export default function Header() {
+function HeaderContent() {
   const [isOpen, setIsOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const providerId = searchParams?.get("provider");
 
   const navItems = [
     { name: "Home", icon: <Home size={18} />, href: "/" },
-    { name: "Hotels", icon: <Hotel size={18} />, href: "/hotel" },
-    { name: "Rides", icon: <Car size={18} />, href: "/rides" },
-    { name: "Services", icon: <Sparkles size={18} />, href: "/services" },
+    { name: "Hotels", icon: <Hotel size={18} />, href: providerId ? `/hotel?provider=${providerId}` : "/hotel" },
+    { name: "Rides", icon: <Car size={18} />, href: providerId ? `/rides?provider=${providerId}` : "/rides" },
+    { name: "Services", icon: <Sparkles size={18} />, href: providerId ? `/services?provider=${providerId}` : "/services" },
     { name: "Contact", icon: <Phone size={18} />, href: "/contact" },
   ];
 
@@ -141,5 +144,13 @@ export default function Header() {
         )}
       </div>
     </header>
+  );
+}
+
+export default function Header() {
+  return (
+    <Suspense fallback={<div className="h-16 bg-white"></div>}>
+      <HeaderContent />
+    </Suspense>
   );
 }

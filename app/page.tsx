@@ -9,16 +9,19 @@ import {
   Hotel,
   Users,
   ArrowRight,
-
   Menu,
   X,
+  Star,
+  BrushCleaning,
 } from "lucide-react";
-import { Star, Cloud, Circle, Triangle, Square } from "lucide-react";
+import { motion } from "framer-motion";
+import { Cloud, Circle, Triangle, Square } from "lucide-react";
 
 const floatingIcons = { Star, Cloud, Circle, Triangle, Square };
 
 import Image from "next/image";
 import ContactSection from "@/components/ContactSection";
+import UnifiedHeader from "@/components/UnifiedHeader";
 interface BannerForm {
   title: string;
   subtitle: string;
@@ -41,20 +44,70 @@ const poppins = Poppins({
   display: "swap",
 });
 
+interface Provider {
+  _id: string;
+  name: string;
+  description?: string;
+  logo?: string;
+  rating?: number;
+  specialties?: string[];
+  city?: string;
+}
+
 export default function ServiHubHome() {
   const router = useRouter();
 
 
-  useEffect(() => {
+  const [banner, setBanner] = useState<BannerData | null>(null);
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [availableServices, setAvailableServices] = useState<{
+    hasCleaning: boolean;
+    hasHotels: boolean;
+    hasRides: boolean;
+    counts: { cleaning: number; hotels: number; rides: number };
+  }>({ hasCleaning: false, hasHotels: false, hasRides: false, counts: { cleaning: 0, hotels: 0, rides: 0 } });
+  const [loadingServices, setLoadingServices] = useState(false);
 
-    const onScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-const [banner, setBanner] = useState<BannerData | null>(null);
-  // const [loading, setLoading] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  // Get provider from URL on mount and when it changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const providerId = params.get("provider");
+      setSelectedProvider(providerId);
+    }
+  }, [typeof window !== "undefined" ? window.location.search : ""]);
+
+  // Fetch available services for selected provider
+  useEffect(() => {
+    async function fetchProviderServices() {
+      if (!selectedProvider) {
+        setAvailableServices({ hasCleaning: false, hasHotels: false, hasRides: false, counts: { cleaning: 0, hotels: 0, rides: 0 } });
+        return;
+      }
+
+      setLoadingServices(true);
+      try {
+        const res = await fetch(`${API_BASE}/api/providers/${selectedProvider}/services/all`);
+        const data = await res.json();
+
+        if (data.success) {
+          setAvailableServices({
+            hasCleaning: data.counts.cleaning > 0,
+            hasHotels: data.counts.hotels > 0,
+            hasRides: data.counts.rides > 0,
+            counts: data.counts,
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching provider services:", err);
+        setAvailableServices({ hasCleaning: false, hasHotels: false, hasRides: false, counts: { cleaning: 0, hotels: 0, rides: 0 } });
+      } finally {
+        setLoadingServices(false);
+      }
+    }
+    fetchProviderServices();
+  }, [selectedProvider]);
 
 
   useEffect(() => {
@@ -74,6 +127,22 @@ const [banner, setBanner] = useState<BannerData | null>(null);
     }
     fetchBanner();
   }, []);
+
+  useEffect(() => {
+    async function fetchProviders() {
+      try {
+        const res = await fetch(`${API_BASE}/api/providers?isActive=true`);
+        const data = await res.json();
+        if (data.success) {
+          setProviders(data.providers);
+        }
+      } catch (err) {
+        console.error("Error fetching providers:", err);
+      }
+    }
+    fetchProviders();
+  }, []);
+
   const services = [
     {
       id: "cleaning",
@@ -171,45 +240,8 @@ const [banner, setBanner] = useState<BannerData | null>(null);
         }
       `}</style>
 
-      {/* NAV */}
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/80 backdrop-blur-md shadow-md" : "bg-transparent"
-          }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push("/")}>
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-cyan-500 flex items-center justify-center shadow">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <div className="font-extrabold text-xl">ServiHub</div>
-          </div>
-
-          <div className="hidden md:flex items-center gap-6">
-            <button onClick={() => router.push("/")} className="text-sm font-medium hover:text-slate-700">Home</button>
-            <button onClick={() => router.push("/cleaning")} className="text-sm font-medium hover:text-slate-700">Cleaning</button>
-            {/* <button onClick={() => router.push("/taxi")} className="text-sm font-medium hover:text-slate-700">Taxi</button> */}
-            <button onClick={() => router.push("/hotel")} className="text-sm font-medium hover:text-slate-700">Hotel</button>
-            {/* <button onClick={() => router.push("/rideshare")} className="text-sm font-medium hover:text-slate-700">RideShare</button> */}
-            <button onClick={() => document.getElementById("contactus")?.scrollIntoView({ behavior: "smooth" })}className="ml-4 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 font-semibold">Get Started</button>
-          </div>
-
-          <button className="md:hidden" onClick={() => setMobileMenuOpen((s) => !s)}>
-            {mobileMenuOpen ? <X /> : <Menu />}
-          </button>
-        </div>
-
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white/95 backdrop-blur p-4 border-t">
-            <div className="space-y-2">
-              <button onClick={() => { router.push("/"); setMobileMenuOpen(false); }} className="block w-full text-left">Home</button>
-              <button onClick={() => { router.push("/cleaning"); setMobileMenuOpen(false); }} className="block w-full text-left">Cleaning</button>
-              {/* <button onClick={() => { router.push("/taxi"); setMobileMenuOpen(false); }} className="block w-full text-left">Taxi</button> */}
-              <button onClick={() => { router.push("/hotel"); setMobileMenuOpen(false); }} className="block w-full text-left">Hotel</button>
-              {/* <button onClick={() => { router.push("/rideshare"); setMobileMenuOpen(false); }} className="block w-full text-left">RideShare</button> */}
-            </div>
-          </div>
-        )}
-      </nav>
+      {/* Use Unified Header */}
+      <UnifiedHeader />
 
       {/* HERO */}
       <header className="relative overflow-hidden pt-20">
@@ -235,45 +267,45 @@ const [banner, setBanner] = useState<BannerData | null>(null);
           transform: "rotate(12deg)",
         }}></div>
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-         {(
-  [
-    "Star",
-    "Cloud",
-    "Circle",
-    "Triangle",
-    "Square",
-    "Star",
-    "Cloud",
-    "Circle",
-    "Triangle",
-    "Square",
-  ] as (keyof typeof floatingIcons)[]
-).map((IconName, i) => {
-  const Icon = floatingIcons[IconName];
-  const top = Math.random() * 100;
-  const left = Math.random() * 100;
-  const size = Math.floor(Math.random() * 22) + 12;
-  const color = Math.random() > 0.5 ? "#ff6b6b" : "#ff9f43";
-  const duration = Math.random() * 6 + 6;
-  const delay = Math.random() * 5;
-  const rotate = Math.random() > 0.5;
+          {(
+            [
+              "Star",
+              "Cloud",
+              "Circle",
+              "Triangle",
+              "Square",
+              "Star",
+              "Cloud",
+              "Circle",
+              "Triangle",
+              "Square",
+            ] as (keyof typeof floatingIcons)[]
+          ).map((IconName, i) => {
+            const Icon = floatingIcons[IconName];
+            const top = Math.random() * 100;
+            const left = Math.random() * 100;
+            const size = Math.floor(Math.random() * 22) + 12;
+            const color = Math.random() > 0.5 ? "#ff6b6b" : "#ff9f43";
+            const duration = Math.random() * 6 + 6;
+            const delay = Math.random() * 5;
+            const rotate = Math.random() > 0.5;
 
-  return (
-    <Icon
-      key={i}
-      className="absolute opacity-40"
-      style={{
-        top: `${top}%`,
-        left: `${left}%`,
-        color,
-        width: `${size}px`,
-        height: `${size}px`,
-        animation: `${rotate ? "float-rotate" : "float"} ${duration}s ease-in-out infinite`,
-        animationDelay: `${delay}s`,
-      }}
-    />
-  );
-})}
+            return (
+              <Icon
+                key={i}
+                className="absolute opacity-40"
+                style={{
+                  top: `${top}%`,
+                  left: `${left}%`,
+                  color,
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  animation: `${rotate ? "float-rotate" : "float"} ${duration}s ease-in-out infinite`,
+                  animationDelay: `${delay}s`,
+                }}
+              />
+            );
+          })}
 
         </div>
         <div aria-hidden className="absolute right-6 top-20 w-44 h-44 rounded-full float-blob" style={{
@@ -303,100 +335,228 @@ const [banner, setBanner] = useState<BannerData | null>(null);
         </div>
 
         {/* Hero content container */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 pb-24 pt-12">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-3 bg-white/10 text-slate-900 rounded-full px-4 py-2 text-sm glass-card" style={{ display: "inline-flex" }}>
-                <span className="bg-white px-2 py-1 rounded-full text-xs font-semibold">NEW</span>
-                Promo style home
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20 md:pb-24 pt-8 sm:pt-12">
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 items-center">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="inline-flex items-center gap-2 sm:gap-3 bg-white/10 text-slate-900 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm glass-card" style={{ display: "inline-flex" }}>
+                <span className="bg-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-semibold">NEW</span>
+                <span className="hidden sm:inline">Promo style home</span>
+                <span className="sm:hidden">Promo</span>
               </div>
 
-              <h1 className="text-4xl md:text-6xl font-extrabold leading-tight hero-heading">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight hero-heading">
                 {banner?.title}
               </h1>
 
-              <p className="max-w-xl text-slate-700">
+              <p className="max-w-xl text-slate-700 text-sm sm:text-base">
                 {banner?.subtitle}
               </p>
 
-              <div className="flex items-center gap-4">
-                <button onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold shadow-lg">
-                  {banner?.buttonText} <ArrowRight className="w-4 h-4" />
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                <button onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex items-center justify-center gap-2 sm:gap-3 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold shadow-lg text-sm sm:text-base">
+                  {banner?.buttonText} <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
-                <a className="text-sm text-slate-700/90 hover:underline cursor-pointer" onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}>See pricing</a>
+                <a className="text-xs sm:text-sm text-slate-700/90 hover:underline cursor-pointer text-center sm:text-left" onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}>See pricing</a>
               </div>
 
-              <div className="mt-6 grid grid-cols-2 gap-4 max-w-xs">
+              <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-3 sm:gap-4 max-w-xs">
 
-                {banner?.metrics?.map((t,i) => <div key={i} className="bg-white/90 rounded-xl p-3 text-slate-900 text-center shadow">
+                {banner?.metrics?.map((t, i) => <div key={i} className="bg-white/90 rounded-xl p-2.5 sm:p-3 text-slate-900 text-center shadow">
                   <div className="text-xs font-medium">{t.label}</div>
-                  <div className="text-lg font-extrabold">{t.value}</div>
+                  <div className="text-base sm:text-lg font-extrabold">{t.value}</div>
                 </div>)}
               </div>
             </div>
 
             {/* Right: phone mockup + floating elements */}
-            <div className="relative flex justify-center md:justify-end">
-              <div className="w-[320px] md:w-[420px] lg:w-[520px] rounded-3xl overflow-hidden transform transition-all">
-            {banner?.image ? (
-  <Image
-    src={banner.image}
-    alt="app mockup"
-    height={100}
-    width={100}
-    className="w-full h-full object-cover"
-  />
-) : (
-  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-500">
-    No image available
-  </div>
-)}
+            <div className="relative flex justify-center md:justify-end mt-6 md:mt-0">
+              <div className="w-full max-w-[280px] sm:max-w-[320px] md:w-[420px] lg:w-[520px] rounded-2xl sm:rounded-3xl overflow-hidden transform transition-all">
+                {banner?.image ? (
+                  <Image
+                    src={banner.image}
+                    alt="app mockup"
+                    height={100}
+                    width={100}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-500">
+                    No image available
+                  </div>
+                )}
 
               </div>
 
-              <div className="absolute -left-6 -top-8 w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-lg float-blob">
-                <Sparkles className="text-pink-600 w-5 h-5" />
+              <div className="absolute -left-4 sm:-left-6 -top-6 sm:-top-8 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-white/90 flex items-center justify-center shadow-lg float-blob">
+                <Sparkles className="text-pink-600 w-4 h-4 sm:w-5 sm:h-5" />
               </div>
 
-              <div className="absolute -right-8 bottom-8 w-28 h-12 rounded-xl bg-white/90 flex items-center justify-center shadow-lg text-sm">
+              <div className="absolute -right-4 sm:-right-8 bottom-6 sm:bottom-8 w-20 sm:w-24 md:w-28 h-8 sm:h-10 md:h-12 rounded-lg sm:rounded-xl bg-white/90 flex items-center justify-center shadow-lg text-xs sm:text-sm">
                 <div className="text-xs">Download App</div>
               </div>
             </div>
           </div>
 
           {/* quick search strip */}
-          <div className="mt-12 max-w-3xl mx-auto">
-            <div className="glass-card rounded-full shadow-lg p-2 flex items-center gap-3">
-              <input className="flex-1 rounded-full px-4 py-3 border-none outline-none" placeholder="Quick booking — pickup, service or destination (e.g. Home Cleaning, Ludhiana)" />
-              <button className="rounded-full bg-pink-500 text-white px-6 py-3 font-semibold">Quick Book</button>
-            </div>
-          </div>
+        
         </div>
       </header>
 
-      {/* SERVICES grid */}
-      <section id="services" className="max-w-7xl mx-auto px-6 py-20">
-        <h2 className="text-3xl font-extrabold mb-3">What Services You Receive?</h2>
-        <p className="text-slate-600 max-w-2xl mb-8">Trusted teams, transparent pricing, and instant booking — all in one place.</p>
+      {/* SERVICE TYPES SECTION - Show only available services */}
+      <section id="services" className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20">
+        {!selectedProvider ? (
+          <div className="text-center py-16 bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl border-2 border-dashed border-pink-200">
+            <Sparkles className="w-16 h-16 text-pink-400 mx-auto mb-4" />
+            <h2 className="text-3xl font-extrabold mb-3 text-gray-800">Select a Provider to Continue</h2>
+            <p className="text-slate-600 max-w-2xl mx-auto mb-6">
+              Choose a service provider from the dropdown in the header to access their services.
+            </p>
+          </div>
+        ) : loadingServices ? (
+          <div className="text-center py-16">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+            <p className="mt-4 text-gray-600">Loading available services...</p>
+          </div>
+        ) : availableServices.hasCleaning || availableServices.hasHotels || availableServices.hasRides ? (
+          <div>
+            <div className="text-center mb-8 sm:mb-12 px-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-2 sm:mb-3 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Available Services
+              </h2>
+              <p className="text-slate-600 max-w-2xl mx-auto text-sm sm:text-base md:text-lg px-2">
+                Select the type of service you need from {providers.find(p => p._id === selectedProvider)?.name || "your provider"}
+              </p>
+            </div>
 
-        <div className="grid md:grid-cols-4 gap-6">
-          {services.map((s) => (
-            <article
-              key={s.id}
-              onClick={() => router.push(s.route)}
-              className={`cursor-pointer rounded-2xl p-6 shadow-lg transform hover:-translate-y-3 transition tilt-up text-white bg-gradient-to-tr ${s.hue}`}
+            <div className={`grid grid-cols-1 gap-4 sm:gap-6 md:gap-8 max-w-6xl mx-auto ${(availableServices.hasCleaning ? 1 : 0) +
+                (availableServices.hasHotels ? 1 : 0) +
+                (availableServices.hasRides ? 1 : 0) === 1
+                ? "sm:max-w-md"
+                : (availableServices.hasCleaning ? 1 : 0) + (availableServices.hasHotels ? 1 : 0) + (availableServices.hasRides ? 1 : 0) === 2
+                  ? "sm:grid-cols-2"
+                  : "sm:grid-cols-2 lg:grid-cols-3"
+              }`}>
+              {/* Cleaning Service Button - Only show if available */}
+              {availableServices.hasCleaning && (
+                <motion.article
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ scale: 1.03, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                  onClick={() => router.push(`/cleaning?provider=${selectedProvider}`)}
+                  className="group cursor-pointer relative overflow-hidden rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl transform transition-all bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 text-white hover:shadow-green-500/50"
+                >
+                  {/* Animated background pattern */}
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full blur-3xl transform translate-x-4 sm:translate-x-8 -translate-y-4 sm:-translate-y-8 group-hover:scale-150 transition-transform duration-500"></div>
+                    <div className="absolute bottom-0 left-0 w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full blur-2xl transform -translate-x-4 sm:-translate-x-6 translate-y-4 sm:translate-y-6 group-hover:scale-125 transition-transform duration-500"></div>
+                  </div>
+
+                  <div className="relative z-10">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 sm:mb-6 group-hover:bg-white/30 transition-all shadow-lg">
+                      <BrushCleaning className="w-8 h-8 sm:w-10 sm:h-10 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <h3 className="font-bold text-xl sm:text-2xl mb-2">Cleaning Services</h3>
+                    <p className="text-white/90 mb-3 sm:mb-4 text-xs sm:text-sm">Professional cleaning for your home, office, and more</p>
+                    {availableServices.counts.cleaning > 0 && (
+                      <div className="mb-4 sm:mb-6 inline-flex items-center gap-2 text-xs font-semibold bg-white/20 px-2.5 sm:px-3 py-1 rounded-full">
+                        {availableServices.counts.cleaning} {availableServices.counts.cleaning === 1 ? 'Service' : 'Services'} Available
+                      </div>
+                    )}
+                    <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold bg-white/30 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-full group-hover:bg-white/40 transition-all shadow-md">
+                      View Services <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </motion.article>
+              )}
+
+              {/* Hotel Service Button - Only show if available */}
+              {availableServices.hasHotels && (
+                <motion.article
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ scale: 1.03, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                  onClick={() => router.push(`/hotel?provider=${selectedProvider}`)}
+                  className="group cursor-pointer relative overflow-hidden rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl transform transition-all bg-gradient-to-br from-blue-500 via-sky-500 to-cyan-600 text-white hover:shadow-blue-500/50"
+                >
+                  {/* Animated background pattern */}
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full blur-3xl transform translate-x-4 sm:translate-x-8 -translate-y-4 sm:-translate-y-8 group-hover:scale-150 transition-transform duration-500"></div>
+                    <div className="absolute bottom-0 left-0 w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full blur-2xl transform -translate-x-4 sm:-translate-x-6 translate-y-4 sm:translate-y-6 group-hover:scale-125 transition-transform duration-500"></div>
+                  </div>
+
+                  <div className="relative z-10">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 sm:mb-6 group-hover:bg-white/30 transition-all shadow-lg">
+                      <Hotel className="w-8 h-8 sm:w-10 sm:h-10 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <h3 className="font-bold text-xl sm:text-2xl mb-2">Hotel Bookings</h3>
+                    <p className="text-white/90 mb-3 sm:mb-4 text-xs sm:text-sm">Find and book the perfect hotel for your stay</p>
+                    {availableServices.counts.hotels > 0 && (
+                      <div className="mb-4 sm:mb-6 inline-flex items-center gap-2 text-xs font-semibold bg-white/20 px-2.5 sm:px-3 py-1 rounded-full">
+                        {availableServices.counts.hotels} {availableServices.counts.hotels === 1 ? 'Hotel' : 'Hotels'} Available
+                      </div>
+                    )}
+                    <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold bg-white/30 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-full group-hover:bg-white/40 transition-all shadow-md">
+                      View Hotels <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </motion.article>
+              )}
+
+              {/* Taxi/Ride Service Button - Only show if available */}
+              {availableServices.hasRides && (
+                <motion.article
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ scale: 1.03, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                  onClick={() => router.push(`/taxi?provider=${selectedProvider}`)}
+                  className="group cursor-pointer relative overflow-hidden rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl transform transition-all bg-gradient-to-br from-yellow-500 via-orange-500 to-amber-600 text-white hover:shadow-yellow-500/50"
+                >
+                  {/* Animated background pattern */}
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full blur-3xl transform translate-x-4 sm:translate-x-8 -translate-y-4 sm:-translate-y-8 group-hover:scale-150 transition-transform duration-500"></div>
+                    <div className="absolute bottom-0 left-0 w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full blur-2xl transform -translate-x-4 sm:-translate-x-6 translate-y-4 sm:translate-y-6 group-hover:scale-125 transition-transform duration-500"></div>
+                  </div>
+
+                  <div className="relative z-10">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 sm:mb-6 group-hover:bg-white/30 transition-all shadow-lg">
+                      <Car className="w-8 h-8 sm:w-10 sm:h-10 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <h3 className="font-bold text-xl sm:text-2xl mb-2">Ride Services</h3>
+                    <p className="text-white/90 mb-3 sm:mb-4 text-xs sm:text-sm">Book a ride - bike, auto, or cab - anywhere you need</p>
+                    {availableServices.counts.rides > 0 && (
+                      <div className="mb-4 sm:mb-6 inline-flex items-center gap-2 text-xs font-semibold bg-white/20 px-2.5 sm:px-3 py-1 rounded-full">
+                        {availableServices.counts.rides} {availableServices.counts.rides === 1 ? 'Route' : 'Routes'} Available
+                      </div>
+                    )}
+                    <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold bg-white/30 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-full group-hover:bg-white/40 transition-all shadow-md">
+                      Book Ride <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </motion.article>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border-2 border-dashed border-gray-300">
+            <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-3 text-gray-800">No Services Available</h2>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              This provider hasn't added any services yet. Please check back later or select another provider.
+            </p>
+            <button
+              onClick={() => {
+                setSelectedProvider(null);
+                window.location.href = "/";
+              }}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition"
             >
-              <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center mb-4">
-                {s.icon}
-              </div>
-              <h3 className="font-bold text-lg">{s.title}</h3>
-              <p className="text-sm mt-2 text-white/90">{s.desc}</p>
-              <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold">
-                Learn more <ArrowRight className="w-4 h-4" />
-              </div>
-            </article>
-          ))}
-        </div>
+              Choose Another Provider <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </section>
 
       {/* PRICING */}
@@ -530,9 +690,19 @@ const [banner, setBanner] = useState<BannerData | null>(null);
           <div>
             <h4 className="font-semibold mb-3">Services</h4>
             <ul className="text-sm text-slate-300 space-y-2">
-              <li className="cursor-pointer" onClick={() => router.push("/cleaning")}>Cleaning</li>
+              <li
+                className="cursor-pointer hover:text-pink-400 transition"
+                onClick={() => router.push(selectedProvider ? `/cleaning?provider=${selectedProvider}` : "/cleaning")}
+              >
+                Cleaning
+              </li>
               {/* <li className="cursor-pointer" onClick={() => router.push("/taxi")}>Taxi</li> */}
-              <li className="cursor-pointer" onClick={() => router.push("/hotel")}>Hotel</li>
+              <li
+                className="cursor-pointer hover:text-pink-400 transition"
+                onClick={() => router.push(selectedProvider ? `/hotel?provider=${selectedProvider}` : "/hotel")}
+              >
+                Hotel
+              </li>
               {/* <li className="cursor-pointer" onClick={() => router.push("/rideshare")}>RideShare</li> */}
             </ul>
           </div>

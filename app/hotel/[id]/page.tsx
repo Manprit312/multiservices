@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useState, Suspense } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import {
@@ -15,8 +15,9 @@ import {
   Waves,
   BedDouble,
   ArrowLeft,
+  Calendar,
 } from "lucide-react";
-import Header from "@/components/HotelHeader";
+import UnifiedHeader from "@/components/UnifiedHeader";
 interface Hotel {
   _id: string;
   name: string;
@@ -32,11 +33,13 @@ interface Hotel {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-export default function HotelSingle() {
+function HotelSingleContent() {
   const { id } = useParams();
   const router = useRouter();
-const [hotel, setHotel] = useState<Hotel | null>(null);
-
+  const searchParams = useSearchParams();
+  const providerId = searchParams?.get("provider");
+  
+  const [hotel, setHotel] = useState<Hotel | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -68,10 +71,17 @@ const [hotel, setHotel] = useState<Hotel | null>(null);
       </div>
     );
 
+  const handleBookNow = () => {
+    const url = providerId
+      ? `/hotel/${id}/book?provider=${providerId}`
+      : `/hotel/${id}/book`;
+    router.push(url);
+  };
+
   return (
     <>
-<Header/>
-    <main className="relative min-h-screen bg-gradient-to-b from-blue-50 via-white to-sky-100 overflow-hidden">
+      <UnifiedHeader />
+      <main className="relative min-h-screen bg-gradient-to-b from-blue-50 via-white to-sky-100 overflow-hidden pt-16">
       {/* Floating Decorative Icons */}
       <motion.div
         className="absolute top-20 left-10 text-sky-300 opacity-50"
@@ -99,7 +109,7 @@ const [hotel, setHotel] = useState<Hotel | null>(null);
       {/* Hero Section */}
       <section className="relative h-[70vh] w-full">
         <Image
-          src={hotel.images?.[0] || "/default-hotel.jpg"}
+          src={hotel.images?.[0] || "/placeholder-hotel.jpg"}
           alt={hotel.name}
           fill
           className="object-cover"
@@ -228,8 +238,10 @@ const [hotel, setHotel] = useState<Hotel | null>(null);
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-10 py-4 bg-gradient-to-r from-blue-600 to-sky-500 text-white font-semibold rounded-full shadow-lg hover:shadow-2xl transition-all duration-300"
+            onClick={handleBookNow}
+            className="px-10 py-4 bg-gradient-to-r from-blue-600 to-sky-500 text-white font-semibold rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 flex items-center gap-2"
           >
+            <Calendar className="w-5 h-5" />
             Book Now
           </motion.button>
         </motion.div>
@@ -248,4 +260,12 @@ function getAmenityIcon(name: string) {
   if (n.includes("food")) return <Utensils className="text-sky-500" />;
   if (n.includes("bed")) return <BedDouble className="text-sky-500" />;
   return <Sparkles className="text-sky-500" />;
+}
+
+export default function HotelSingle() {
+  return (
+    <Suspense fallback={<div className="h-16 bg-white"></div>}>
+      <HotelSingleContent />
+    </Suspense>
+  );
 }

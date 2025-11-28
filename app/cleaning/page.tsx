@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { DEFAULT_IMAGES } from "@/lib/cloudinary";
 import {
   Calendar,
   MapPin,
@@ -11,6 +13,7 @@ import {
   ArrowRight,
   Sparkles,
   Star,
+  X,
 } from "lucide-react";
 interface CleaningBanner {
   _id: string;
@@ -26,14 +29,32 @@ interface CleaningService {
   price: number;
   duration?: number;
   images?: string[];
+  provider?: {
+    _id: string;
+    name: string;
+    logo?: string;
+  };
 }
-import CleaningHeader from "@/components/CleaningHeader";
+
+interface Provider {
+  _id: string;
+  name: string;
+  description?: string;
+  logo?: string;
+  rating?: number;
+}
+
+import UnifiedHeader from "@/components/UnifiedHeader";
 import CleaningCostCalculator from "@/components/Calculator";
 
 const PRIMARY_GREEN = "#2f9b57";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-export default function CleaningPage() {
+function CleaningPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const providerId = searchParams?.get("provider");
+
   const [form, setForm] = useState({
     service: "home-deep",
     date: "",
@@ -45,11 +66,43 @@ export default function CleaningPage() {
   const [loading, setLoading] = useState(true);
 const [banner, setBanner] = useState<CleaningBanner | null>(null);
 const [services, setServices] = useState<CleaningService[]>([]);
+const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+const [allProviders, setAllProviders] = useState<Provider[]>([]);
+
+  useEffect(() => {
+    async function fetchProviders() {
+      try {
+        const res = await fetch(`${API_BASE}/api/providers?isActive=true`);
+        const data = await res.json();
+        if (data.success) {
+          setAllProviders(data.providers);
+          // If providerId is in URL, find and set the provider
+          if (providerId) {
+            const provider = data.providers.find((p: Provider) => p._id === providerId);
+            if (provider) {
+              setSelectedProvider(provider);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch providers:", err);
+      }
+    }
+    fetchProviders();
+  }, [providerId]);
 
   useEffect(() => {
     async function fetchServices() {
+      // Only fetch services if a provider is selected
+      if (!providerId) {
+        setServices([]);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const res = await fetch(`${API_BASE}/api/cleaning`);
+        const url = `${API_BASE}/api/cleaning?providerId=${providerId}`;
+        const res = await fetch(url);
         const data = await res.json();
         if (data.success) {
           setServices(data.cleanings);
@@ -58,12 +111,13 @@ const [services, setServices] = useState<CleaningService[]>([]);
         }
       } catch (err) {
         console.error("Failed to fetch services:", err);
+        setServices([]);
       } finally {
         setLoading(false);
       }
     }
     fetchServices();
-  }, []);
+  }, [providerId]);
   // Fetch banner on mount
   useEffect(() => {
     async function fetchBanner() {
@@ -98,7 +152,7 @@ const [services, setServices] = useState<CleaningService[]>([]);
 
   return (
     <>
-      <CleaningHeader />
+      <UnifiedHeader />
       <main className="text-gray-900 mt-28 ">
         <style>{`:root { --qleen-green: ${PRIMARY_GREEN}; }`}</style>
 
@@ -168,10 +222,7 @@ const [services, setServices] = useState<CleaningService[]>([]);
               <div className="relative order-first lg:order-last">
                 <div className="rounded-3xl overflow-hidden shadow-2xl">
                   <Image
-                    src={
-                      banner?.image ||
-                      "https://images.unsplash.com/photo-1581574209861-8b8a1f52e7c0?auto=format&fit=crop&w=1600&q=80"
-                    }
+                    src={banner?.image || DEFAULT_IMAGES.cleaningHero}
                     width={1200}
                     height={800}
                     alt="Cleaning hero banner"
@@ -198,6 +249,75 @@ const [services, setServices] = useState<CleaningService[]>([]);
             </div>
           </div>
         </div>
+
+        {/* PROVIDER SELECTION - Show selected provider prominently */}
+        {providerId && selectedProvider ? (
+          <section className="max-w-7xl mx-auto px-6 lg:px-8 mb-8">
+            <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl p-6 shadow-lg border-2 border-emerald-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  {selectedProvider.logo ? (
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow">
+                      <Image
+                        src={selectedProvider.logo}
+                        alt={selectedProvider.name}
+                        width={64}
+                        height={64}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-white font-bold text-xl border-2 border-white shadow">
+                      {selectedProvider.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">Services from {selectedProvider.name}</h3>
+                    {selectedProvider.description && (
+                      <p className="text-sm text-gray-600 mt-1">{selectedProvider.description}</p>
+                    )}
+                    {selectedProvider.rating && (
+                      <div className="flex items-center gap-1 mt-2">
+                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                        <span className="text-sm font-semibold">{selectedProvider.rating.toFixed(1)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setSelectedProvider(null);
+                    router.push("/cleaning");
+                  }}
+                  className="px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 transition-all flex items-center gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  Change Provider
+                </button>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section className="max-w-7xl mx-auto px-6 lg:px-8 mb-8">
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Select a Service Provider</h3>
+                  <p className="text-gray-700">Please select a provider from the home page to view their available services.</p>
+                </div>
+                <button
+                  onClick={() => router.push("/")}
+                  className="px-6 py-3 rounded-lg bg-[var(--qleen-green)] text-white font-semibold hover:shadow-lg transition-all"
+                >
+                  Choose Provider
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* FEATURE + CALCULATOR ROW */}
         <section id="booking" className="max-w-7xl mx-auto px-6 lg:px-8 -mt-6 mb-16">
@@ -385,12 +505,38 @@ const [services, setServices] = useState<CleaningService[]>([]);
         </section>
 
         <section id="services" className="max-w-7xl mx-auto px-6 lg:px-8 pb-20">
-          <h2 className="text-3xl font-extrabold mb-6 text-gray-900">Our Services</h2>
+          <h2 className="text-3xl font-extrabold mb-6 text-gray-900">
+            {selectedProvider ? `${selectedProvider.name}'s Services` : "Our Services"}
+          </h2>
 
           {loading ? (
             <div className="text-center text-gray-500 py-10">Loading services...</div>
+          ) : !providerId ? (
+            <div className="text-center py-12 bg-gray-50 rounded-2xl">
+              <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-700 mb-2">No Provider Selected</h3>
+              <p className="text-gray-600 mb-6">Please select a service provider from the home page to view their services.</p>
+              <button
+                onClick={() => router.push("/")}
+                className="inline-flex items-center gap-2 bg-[var(--qleen-green)] text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all"
+              >
+                Go to Home Page <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           ) : services.length === 0 ? (
-            <div className="text-center text-gray-500 py-10">No cleaning services available.</div>
+            <div className="text-center py-12 bg-gray-50 rounded-2xl">
+              <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-700 mb-2">No Services Available</h3>
+              <p className="text-gray-600 mb-6">
+                {selectedProvider?.name} doesn't have any services listed yet. Please check back later or select another provider.
+              </p>
+              <button
+                onClick={() => router.push("/")}
+                className="inline-flex items-center gap-2 bg-[var(--qleen-green)] text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all"
+              >
+                Select Another Provider <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           ) : (
             <div className="grid md:grid-cols-4 sm:grid-cols-2 gap-6">
               {services.map((service, i) => (
@@ -413,7 +559,23 @@ const [services, setServices] = useState<CleaningService[]>([]);
 
                   {/* Content */}
                   <div className="p-5">
-                    <h3 className="font-bold text-lg">{service.name}</h3>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-bold text-lg">{service.name}</h3>
+                      {service.provider && (
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          {service.provider.logo && (
+                            <Image
+                              src={service.provider.logo}
+                              alt={service.provider.name}
+                              width={20}
+                              height={20}
+                              className="rounded-full"
+                            />
+                          )}
+                          <span>{service.provider.name}</span>
+                        </div>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-600 mt-2 line-clamp-3">
                       {service.description || "No description provided."}
                     </p>
@@ -485,5 +647,13 @@ const [services, setServices] = useState<CleaningService[]>([]);
         </footer>
       </main>
     </>
+  );
+}
+
+export default function CleaningPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-20">Loading...</div>}>
+      <CleaningPageContent />
+    </Suspense>
   );
 }

@@ -1,17 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Home, BrushCleaning, Leaf, Sparkles, Phone, Menu, X } from "lucide-react";
 import Link from "next/link";
 
-export default function CleaningHeader() {
+function CleaningHeaderContent() {
   const [isOpen, setIsOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const providerId = searchParams?.get("provider");
 
   const navItems = [
     { name: "Home", icon: <Home size={18} />, href: "/" },
-    { name: "Cleaning", icon: <BrushCleaning size={18} />, href: "/cleaning" },
-    { name: "Packages", icon: <Leaf size={18} />, href: "/cleaning/packages" },
+    { name: "Cleaning", icon: <BrushCleaning size={18} />, href: providerId ? `/cleaning?provider=${providerId}` : "/cleaning" },
+    { name: "Packages", icon: <Leaf size={18} />, href: providerId ? `/cleaning/packages?provider=${providerId}` : "/cleaning/packages" },
     { name: "Contact", icon: <Phone size={18} />,  href:"#booking" },
   ];
 
@@ -139,5 +142,13 @@ export default function CleaningHeader() {
         )}
       </div>
     </header>
+  );
+}
+
+export default function CleaningHeader() {
+  return (
+    <Suspense fallback={<div className="h-16 bg-white"></div>}>
+      <CleaningHeaderContent />
+    </Suspense>
   );
 }

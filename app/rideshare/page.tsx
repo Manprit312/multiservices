@@ -58,7 +58,7 @@ export default function RideSharePage() {
         >
           <div className="relative w-full h-[400px] rounded-3xl overflow-hidden shadow-2xl">
             <Image
-              src="https://images.unsplash.com/photo-1611421395112-87d0a9128900?auto=format&fit=crop&w=1200&q=80"
+              src="https://res.cloudinary.com/demo/image/upload/w_1200,h_800,c_fill,q_auto,f_auto/v1/multiserv_rides/ride-hero"
               alt="Ride Sharing"
               fill
               style={{ objectFit: "cover" }}
