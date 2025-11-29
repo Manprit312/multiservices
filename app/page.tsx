@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Poppins } from "next/font/google";
 import {
   Sparkles,
@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Star,
   BrushCleaning,
+  MapPin,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Cloud, Circle, Triangle, Square } from "lucide-react";
@@ -52,63 +53,62 @@ interface Provider {
   city?: string;
 }
 
-export default function ServiHubHome() {
+function ServiHubHomeContent() {
   const router = useRouter();
-
+  const searchParams = useSearchParams();
 
   const [banner, setBanner] = useState<BannerData | null>(null);
-  const [providers, setProviders] = useState<Provider[]>([]);
-  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-  const [availableServices, setAvailableServices] = useState<{
-    hasCleaning: boolean;
-    hasHotels: boolean;
-    hasRides: boolean;
-    counts: { cleaning: number; hotels: number; rides: number };
-  }>({ hasCleaning: false, hasHotels: false, hasRides: false, counts: { cleaning: 0, hotels: 0, rides: 0 } });
+  const [selectedServiceType, setSelectedServiceType] = useState<"cleaning" | "hotels" | "cabs">("cleaning");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [services, setServices] = useState<Array<{
+    _id: string;
+    name: string;
+    description?: string;
+    price: number;
+    location?: string;
+    rating?: number;
+    images?: string[];
+    provider?: {
+      _id: string;
+      name: string;
+      logo?: string;
+    };
+    pickup?: string;
+    drop?: string;
+    category?: string;
+    amenities?: string[];
+    duration?: string;
+    capacity?: number;
+    vehicleType?: string;
+    distance?: number;
+    fare?: number;
+    [key: string]: unknown;
+  }>>([]);
   const [loadingServices, setLoadingServices] = useState(false);
+  const [serviceCounts, setServiceCounts] = useState({ cleaning: 0, hotels: 0, rides: 0 });
 
-  // Get provider from URL on mount and when it changes
+  // Get search query and service type from URL
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const providerId = params.get("provider");
-      setSelectedProvider(providerId);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Fetch available services for selected provider
-  useEffect(() => {
-    async function fetchProviderServices() {
-      if (!selectedProvider) {
-        setAvailableServices({ hasCleaning: false, hasHotels: false, hasRides: false, counts: { cleaning: 0, hotels: 0, rides: 0 } });
-        return;
-      }
-
-      setLoadingServices(true);
-      try {
-        const res = await fetch(`${API_BASE}/api/providers/${selectedProvider}/services/all`);
-        const data = await res.json();
-
-        if (data.success) {
-          setAvailableServices({
-            hasCleaning: data.counts.cleaning > 0,
-            hasHotels: data.counts.hotels > 0,
-            hasRides: data.counts.rides > 0,
-            counts: data.counts,
-          });
+    const search = searchParams?.get("search");
+    if (search) {
+      setSearchQuery(decodeURIComponent(search));
+      // Scroll to services section when search is present
+      setTimeout(() => {
+        const element = document.getElementById("services");
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-      } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error("Error fetching provider services:", err);
-        }
-        setAvailableServices({ hasCleaning: false, hasHotels: false, hasRides: false, counts: { cleaning: 0, hotels: 0, rides: 0 } });
-      } finally {
-        setLoadingServices(false);
-      }
+      }, 500);
+    } else {
+      setSearchQuery("");
     }
-    fetchProviderServices();
-  }, [selectedProvider]);
+    
+    // Get service type from URL to activate the correct tab
+    const serviceType = searchParams?.get("service");
+    if (serviceType === "cleaning" || serviceType === "hotels" || serviceType === "cabs") {
+      setSelectedServiceType(serviceType);
+    }
+  }, [searchParams]);
 
 
   useEffect(() => {
@@ -131,22 +131,106 @@ export default function ServiHubHome() {
     fetchBanner();
   }, []);
 
+  // Fetch service counts on mount
   useEffect(() => {
-    async function fetchProviders() {
+    async function fetchServiceCounts() {
       try {
-        const res = await fetch(`${API_BASE}/api/providers?isActive=true`);
-        const data = await res.json();
-        if (data.success) {
-          setProviders(data.providers);
-        }
+        const [cleaningRes, hotelsRes, ridesRes] = await Promise.all([
+          fetch(`${API_BASE}/api/cleaning`),
+          fetch(`${API_BASE}/api/hotels`),
+          fetch(`${API_BASE}/api/book-ride`),
+        ]);
+        
+        const cleaningData = await cleaningRes.json();
+        const hotelsData = await hotelsRes.json();
+        const ridesData = await ridesRes.json();
+
+        setServiceCounts({
+          cleaning: cleaningData.success ? (cleaningData.cleanings?.length || 0) : 0,
+          hotels: hotelsData.success ? (hotelsData.hotels?.length || 0) : 0,
+          rides: ridesData.success ? (ridesData.rides?.length || 0) : 0,
+        });
       } catch (err) {
         if (process.env.NODE_ENV === 'development') {
-          console.error("Error fetching providers:", err);
+          console.error("Error fetching service counts:", err);
         }
       }
     }
-    fetchProviders();
+    fetchServiceCounts();
   }, []);
+
+  // Fetch services based on selected tab and search query
+  useEffect(() => {
+    async function fetchServices() {
+      setLoadingServices(true);
+      try {
+        let url = "";
+        if (selectedServiceType === "cleaning") {
+          url = `${API_BASE}/api/cleaning`;
+        } else if (selectedServiceType === "hotels") {
+          url = `${API_BASE}/api/hotels`;
+        } else if (selectedServiceType === "cabs") {
+          url = `${API_BASE}/api/book-ride`;
+        }
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.success) {
+          let fetchedServices = [];
+          if (selectedServiceType === "cleaning") {
+            fetchedServices = data.cleanings || [];
+          } else if (selectedServiceType === "hotels") {
+            fetchedServices = data.hotels || [];
+          } else if (selectedServiceType === "cabs") {
+            fetchedServices = data.rides || [];
+          }
+
+          // Filter by search query
+          if (searchQuery.trim()) {
+            fetchedServices = fetchedServices.filter((service: {
+              _id: string;
+              name: string;
+              description?: string;
+              location?: string;
+              pickup?: string;
+              drop?: string;
+              provider?: { name: string };
+              [key: string]: unknown;
+            }) => {
+              const searchLower = searchQuery.toLowerCase();
+              const name = typeof service.name === 'string' ? service.name : '';
+              const description = typeof service.description === 'string' ? service.description : '';
+              const location = typeof service.location === 'string' ? service.location : '';
+              const pickup = typeof service.pickup === 'string' ? service.pickup : '';
+              const drop = typeof service.drop === 'string' ? service.drop : '';
+              const providerName = typeof service.provider?.name === 'string' ? service.provider.name : '';
+              return (
+                name.toLowerCase().includes(searchLower) ||
+                description.toLowerCase().includes(searchLower) ||
+                location.toLowerCase().includes(searchLower) ||
+                pickup.toLowerCase().includes(searchLower) ||
+                drop.toLowerCase().includes(searchLower) ||
+                providerName.toLowerCase().includes(searchLower)
+              );
+            });
+          }
+
+          setServices(fetchedServices);
+        } else {
+          setServices([]);
+        }
+      } catch (err) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error fetching services:", err);
+        }
+        setServices([]);
+      } finally {
+        setLoadingServices(false);
+      }
+    }
+    fetchServices();
+  }, [selectedServiceType, searchQuery]);
 
   // Service configuration removed - now dynamically generated from provider services
 
@@ -374,159 +458,286 @@ export default function ServiHubHome() {
         </div>
       </header>
 
-      {/* SERVICE TYPES SECTION - Show only available services */}
+      {/* SERVICE TYPES SECTION - Zomato-style tabs */}
       <section id="services" className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20">
-        {!selectedProvider ? (
-          <div className="text-center py-16 bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl border-2 border-dashed border-pink-200">
-            <Sparkles className="w-16 h-16 text-pink-400 mx-auto mb-4" />
-            <h2 className="text-3xl font-extrabold mb-3 text-gray-800">Select a Provider to Continue</h2>
-            <p className="text-slate-600 max-w-2xl mx-auto mb-6">
-              Choose a service provider from the dropdown in the header to access their services.
-            </p>
+        <div className="text-center mb-8 sm:mb-12 px-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-2 sm:mb-3 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            Explore Services
+          </h2>
+          <p className="text-slate-600 max-w-2xl mx-auto text-sm sm:text-base md:text-lg px-2">
+            Choose from cleaning, hotels, or cab services
+          </p>
+        </div>
+
+        {/* Service Type Tabs - Tab Style with Border Bottom */}
+        <div className="flex justify-center mb-8 border-b border-gray-200 overflow-x-auto">
+          <div className="flex gap-0 w-full max-w-4xl min-w-full sm:min-w-0">
+            <button
+              onClick={() => setSelectedServiceType("cleaning")}
+              className={`flex-1 min-w-[100px] px-2 sm:px-4 py-3 sm:py-4 font-semibold text-xs sm:text-sm md:text-base transition-all flex items-center justify-center gap-1 sm:gap-2 border-b-2 ${
+                selectedServiceType === "cleaning"
+                  ? "border-green-500 text-green-600 bg-green-50/50"
+                  : "border-transparent text-gray-600 hover:text-green-600 hover:border-green-200"
+              }`}
+            >
+              <BrushCleaning size={16} className="sm:w-5 sm:h-5" />
+              <span className="whitespace-nowrap">Cleaning</span>
+              {serviceCounts.cleaning > 0 && (
+                <span className={`text-xs px-1.5 sm:px-2 py-0.5 rounded-full ${
+                  selectedServiceType === "cleaning" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                }`}>
+                  {serviceCounts.cleaning}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setSelectedServiceType("hotels")}
+              className={`flex-1 min-w-[100px] px-2 sm:px-4 py-3 sm:py-4 font-semibold text-xs sm:text-sm md:text-base transition-all flex items-center justify-center gap-1 sm:gap-2 border-b-2 ${
+                selectedServiceType === "hotels"
+                  ? "border-blue-500 text-blue-600 bg-blue-50/50"
+                  : "border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-200"
+              }`}
+            >
+              <Hotel size={16} className="sm:w-5 sm:h-5" />
+              <span className="whitespace-nowrap">Hotels</span>
+              {serviceCounts.hotels > 0 && (
+                <span className={`text-xs px-1.5 sm:px-2 py-0.5 rounded-full ${
+                  selectedServiceType === "hotels" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"
+                }`}>
+                  {serviceCounts.hotels}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setSelectedServiceType("cabs")}
+              className={`flex-1 min-w-[100px] px-2 sm:px-4 py-3 sm:py-4 font-semibold text-xs sm:text-sm md:text-base transition-all flex items-center justify-center gap-1 sm:gap-2 border-b-2 ${
+                selectedServiceType === "cabs"
+                  ? "border-yellow-500 text-yellow-600 bg-yellow-50/50"
+                  : "border-transparent text-gray-600 hover:text-yellow-600 hover:border-yellow-200"
+              }`}
+            >
+              <Car size={16} className="sm:w-5 sm:h-5" />
+              <span className="whitespace-nowrap">Cabs</span>
+              {serviceCounts.rides > 0 && (
+                <span className={`text-xs px-1.5 sm:px-2 py-0.5 rounded-full ${
+                  selectedServiceType === "cabs" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-600"
+                }`}>
+                  {serviceCounts.rides}
+                </span>
+              )}
+            </button>
           </div>
-        ) : loadingServices ? (
+        </div>
+
+        {/* Services Grid */}
+        {loadingServices ? (
           <div className="text-center py-16">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
-            <p className="mt-4 text-gray-600">Loading available services...</p>
+            <p className="mt-4 text-gray-600">Loading services...</p>
           </div>
-        ) : availableServices.hasCleaning || availableServices.hasHotels || availableServices.hasRides ? (
-          <div>
-            <div className="text-center mb-8 sm:mb-12 px-4">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-2 sm:mb-3 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                Available Services
-              </h2>
-              <p className="text-slate-600 max-w-2xl mx-auto text-sm sm:text-base md:text-lg px-2">
-                Select the type of service you need from {providers.find(p => p._id === selectedProvider)?.name || "your provider"}
-              </p>
-            </div>
-
-            <div className={`grid grid-cols-1 gap-4 sm:gap-6 md:gap-8 max-w-6xl mx-auto ${(availableServices.hasCleaning ? 1 : 0) +
-                (availableServices.hasHotels ? 1 : 0) +
-                (availableServices.hasRides ? 1 : 0) === 1
-                ? "sm:max-w-md"
-                : (availableServices.hasCleaning ? 1 : 0) + (availableServices.hasHotels ? 1 : 0) + (availableServices.hasRides ? 1 : 0) === 2
-                  ? "sm:grid-cols-2"
-                  : "sm:grid-cols-2 lg:grid-cols-3"
-              }`}>
-              {/* Cleaning Service Button - Only show if available */}
-              {availableServices.hasCleaning && (
-                <motion.article
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ scale: 1.03, y: -8 }}
-                  transition={{ duration: 0.3 }}
-                  onClick={() => router.push(`/cleaning?provider=${selectedProvider}`)}
-                  className="group cursor-pointer relative overflow-hidden rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl transform transition-all bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 text-white hover:shadow-green-500/50"
-                >
-                  {/* Animated background pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full blur-3xl transform translate-x-4 sm:translate-x-8 -translate-y-4 sm:-translate-y-8 group-hover:scale-150 transition-transform duration-500"></div>
-                    <div className="absolute bottom-0 left-0 w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full blur-2xl transform -translate-x-4 sm:-translate-x-6 translate-y-4 sm:translate-y-6 group-hover:scale-125 transition-transform duration-500"></div>
-                  </div>
-
-                  <div className="relative z-10">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 sm:mb-6 group-hover:bg-white/30 transition-all shadow-lg">
-                      <BrushCleaning className="w-8 h-8 sm:w-10 sm:h-10 group-hover:scale-110 transition-transform" />
-                    </div>
-                    <h3 className="font-bold text-xl sm:text-2xl mb-2">Cleaning Services</h3>
-                    <p className="text-white/90 mb-3 sm:mb-4 text-xs sm:text-sm">Professional cleaning for your home, office, and more</p>
-                    {availableServices.counts.cleaning > 0 && (
-                      <div className="mb-4 sm:mb-6 inline-flex items-center gap-2 text-xs font-semibold bg-white/20 px-2.5 sm:px-3 py-1 rounded-full">
-                        {availableServices.counts.cleaning} {availableServices.counts.cleaning === 1 ? 'Service' : 'Services'} Available
+        ) : services.length > 0 ? (
+          <div className="space-y-6">
+            {services.map((service, index) => (
+              <motion.div
+                key={service._id}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ 
+                  duration: 0.4, 
+                  delay: index * 0.05,
+                  type: "spring",
+                  stiffness: 100
+                }}
+                whileHover={{ 
+                  y: -8, 
+                  scale: 1.02,
+                  transition: { duration: 0.2 }
+                }}
+                onClick={() => {
+                  if (selectedServiceType === "cleaning") {
+                    router.push(`/cleaning/${service._id}`);
+                  } else if (selectedServiceType === "hotels") {
+                    router.push(`/hotel/${service._id}`);
+                  } else if (selectedServiceType === "cabs") {
+                    router.push(`/taxi/${service._id}`);
+                  }
+                }}
+                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all cursor-pointer border border-gray-200 group"
+              >
+                <div className="flex flex-col lg:flex-row">
+                  {/* Service Image - Left Side */}
+                  <div className="relative w-full sm:w-64 h-64 sm:h-auto bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0">
+                    {service.images && service.images.length > 0 ? (
+                      <>
+                      <Image
+                        src={service.images[0]}
+                        alt={service.name}
+                        fill
+                        className="object-cover"
+                      />
+                   
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                         </>
+                    ) : selectedServiceType === "cleaning" ? (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-100 to-emerald-100">
+                        <BrushCleaning className="w-20 h-20 text-green-500" />
+                      </div>
+                    ) : selectedServiceType === "hotels" ? (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-sky-100">
+                        <Hotel className="w-20 h-20 text-blue-500" />
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-yellow-100 to-orange-100">
+                        <Car className="w-20 h-20 text-yellow-500" />
                       </div>
                     )}
-                    <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold bg-white/30 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-full group-hover:bg-white/40 transition-all shadow-md">
-                      View Services <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </motion.article>
-              )}
-
-              {/* Hotel Service Button - Only show if available */}
-              {availableServices.hasHotels && (
-                <motion.article
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ scale: 1.03, y: -8 }}
-                  transition={{ duration: 0.3 }}
-                  onClick={() => router.push(`/hotel?provider=${selectedProvider}`)}
-                  className="group cursor-pointer relative overflow-hidden rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl transform transition-all bg-gradient-to-br from-blue-500 via-sky-500 to-cyan-600 text-white hover:shadow-blue-500/50"
-                >
-                  {/* Animated background pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full blur-3xl transform translate-x-4 sm:translate-x-8 -translate-y-4 sm:-translate-y-8 group-hover:scale-150 transition-transform duration-500"></div>
-                    <div className="absolute bottom-0 left-0 w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full blur-2xl transform -translate-x-4 sm:-translate-x-6 translate-y-4 sm:translate-y-6 group-hover:scale-125 transition-transform duration-500"></div>
-                  </div>
-
-                  <div className="relative z-10">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 sm:mb-6 group-hover:bg-white/30 transition-all shadow-lg">
-                      <Hotel className="w-8 h-8 sm:w-10 sm:h-10 group-hover:scale-110 transition-transform" />
-                    </div>
-                    <h3 className="font-bold text-xl sm:text-2xl mb-2">Hotel Bookings</h3>
-                    <p className="text-white/90 mb-3 sm:mb-4 text-xs sm:text-sm">Find and book the perfect hotel for your stay</p>
-                    {availableServices.counts.hotels > 0 && (
-                      <div className="mb-4 sm:mb-6 inline-flex items-center gap-2 text-xs font-semibold bg-white/20 px-2.5 sm:px-3 py-1 rounded-full">
-                        {availableServices.counts.hotels} {availableServices.counts.hotels === 1 ? 'Hotel' : 'Hotels'} Available
+                    {service.provider?.logo && (
+                      <div className="absolute top-3 right-3 w-12 h-12 rounded-full bg-white p-1 shadow-lg border-2 border-white">
+                        <Image
+                          src={service.provider.logo}
+                          alt={service.provider.name}
+                          width={40}
+                          height={40}
+                          className="rounded-full object-cover"
+                        />
                       </div>
                     )}
-                    <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold bg-white/30 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-full group-hover:bg-white/40 transition-all shadow-md">
-                      View Hotels <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </motion.article>
-              )}
-
-              {/* Taxi/Ride Service Button - Only show if available */}
-              {availableServices.hasRides && (
-                <motion.article
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ scale: 1.03, y: -8 }}
-                  transition={{ duration: 0.3 }}
-                  onClick={() => router.push(`/taxi?provider=${selectedProvider}`)}
-                  className="group cursor-pointer relative overflow-hidden rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl transform transition-all bg-gradient-to-br from-yellow-500 via-orange-500 to-amber-600 text-white hover:shadow-yellow-500/50"
-                >
-                  {/* Animated background pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full blur-3xl transform translate-x-4 sm:translate-x-8 -translate-y-4 sm:-translate-y-8 group-hover:scale-150 transition-transform duration-500"></div>
-                    <div className="absolute bottom-0 left-0 w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full blur-2xl transform -translate-x-4 sm:-translate-x-6 translate-y-4 sm:translate-y-6 group-hover:scale-125 transition-transform duration-500"></div>
-                  </div>
-
-                  <div className="relative z-10">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 sm:mb-6 group-hover:bg-white/30 transition-all shadow-lg">
-                      <Car className="w-8 h-8 sm:w-10 sm:h-10 group-hover:scale-110 transition-transform" />
-                    </div>
-                    <h3 className="font-bold text-xl sm:text-2xl mb-2">Ride Services</h3>
-                    <p className="text-white/90 mb-3 sm:mb-4 text-xs sm:text-sm">Book a ride - bike, auto, or cab - anywhere you need</p>
-                    {availableServices.counts.rides > 0 && (
-                      <div className="mb-4 sm:mb-6 inline-flex items-center gap-2 text-xs font-semibold bg-white/20 px-2.5 sm:px-3 py-1 rounded-full">
-                        {availableServices.counts.rides} {availableServices.counts.rides === 1 ? 'Route' : 'Routes'} Available
+                    {/* Promoted Badge */}
+                    {index < 3 && (
+                      <div className="absolute top-3 left-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                        Popular
                       </div>
                     )}
-                    <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold bg-white/30 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-full group-hover:bg-white/40 transition-all shadow-md">
-                      Book Ride <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+
+                  {/* Service Info - Right Side */}
+                  <div className="flex-1 p-4 sm:p-6 flex flex-col justify-between">
+                    <div>
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-bold text-xl sm:text-2xl mb-2 text-gray-900 group-hover:text-pink-600 transition-colors">
+                            {selectedServiceType === "cabs" 
+                              ? (service.name || `${service.pickup || "Pickup"} → ${service.drop || "Drop"}`)
+                              : service.name}
+                          </h3>
+                          {service.provider && (
+                            <p className="text-sm text-gray-500 mb-2 flex items-center gap-2">
+                              <span className="font-medium">{service.provider.name}</span>
+                            </p>
+                          )}
+                        </div>
+                        {service.rating && (
+                          <div className="flex items-center gap-1 bg-green-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:ml-4">
+                            <Star className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 fill-green-600" />
+                            <span className="text-xs sm:text-sm font-bold text-green-700">{service.rating.toFixed(1)}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Categories/Tags */}
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {selectedServiceType === "cleaning" && service.category && (
+                          <span className="text-xs font-medium px-3 py-1 rounded-full bg-green-100 text-green-700 border border-green-200">
+                            {service.category}
+                          </span>
+                        )}
+                        {selectedServiceType === "hotels" && service.amenities && service.amenities.slice(0, 4).map((amenity: string, idx: number) => (
+                          <span key={idx} className="text-xs font-medium px-3 py-1 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                            {amenity}
+                          </span>
+                        ))}
+                        {service.location && (
+                          <span className="text-xs text-gray-500 flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100">
+                            <MapPin className="w-3 h-3" />
+                            {service.location}
+                          </span>
+                        )}
+                        {selectedServiceType === "cleaning" && service.duration && (
+                          <span className="text-xs text-gray-500 px-3 py-1 rounded-full bg-gray-100">
+                            ⏱️ {service.duration}
+                          </span>
+                        )}
+                        {selectedServiceType === "hotels" && service.capacity && (
+                          <span className="text-xs text-gray-500 px-3 py-1 rounded-full bg-gray-100">
+                            👥 {service.capacity} guests
+                          </span>
+                        )}
+                        {selectedServiceType === "cabs" && service.vehicleType && (
+                          <span className="text-xs font-medium px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200">
+                            {service.vehicleType.toUpperCase()}
+                          </span>
+                        )}
+                        {selectedServiceType === "cabs" && service.distance && (
+                          <span className="text-xs text-gray-500 px-3 py-1 rounded-full bg-gray-100">
+                            📍 {service.distance} km
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Description */}
+                      {service.description && (
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                          {service.description}
+                        </p>
+                      )}
+                      {selectedServiceType === "cabs" && service.pickup && service.drop && (
+                        <div className="text-sm text-gray-600 mb-4 space-y-2">
+                          <p className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                            <span className="font-medium">Pickup:</span> {service.pickup}
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                            <span className="font-medium">Drop:</span> {service.drop}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Price and CTA */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div>
+                        <div className="text-3xl font-bold text-pink-600">
+                          {selectedServiceType === "hotels" ? (
+                            <>₹{service.price}<span className="text-sm font-normal text-gray-500">/night</span></>
+                          ) : selectedServiceType === "cabs" ? (
+                            <>₹{service.fare || service.price}</>
+                          ) : (
+                            <>₹{service.price}</>
+                          )}
+                        </div>
+                        {selectedServiceType === "hotels" && (
+                          <p className="text-xs text-gray-500 mt-1">Per night</p>
+                        )}
+                        {selectedServiceType === "cabs" && (
+                          <p className="text-xs text-gray-500 mt-1">Per ride</p>
+                        )}
+                      </div>
+                      <button className="px-3 sm:px-6 py-1.5 sm:py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-lg sm:rounded-xl hover:shadow-lg transition-all flex items-center gap-1 sm:gap-2 group-hover:scale-105 text-xs sm:text-sm md:text-base">
+                        <span className="hidden sm:inline">View Details</span>
+                        <span className="sm:hidden">View</span>
+                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                      </button>
                     </div>
                   </div>
-                </motion.article>
-              )}
-            </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         ) : (
           <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border-2 border-dashed border-gray-300">
             <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-3 text-gray-800">No Services Available</h2>
+            <h2 className="text-2xl font-bold mb-3 text-gray-800">No Services Found</h2>
             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              This provider hasn&apos;t added any services yet. Please check back later or select another provider.
+              {searchQuery
+                ? `No ${selectedServiceType} services match your search "${searchQuery}". Try a different search term.`
+                : `No ${selectedServiceType} services available at the moment. Please check back later.`}
             </p>
-            <button
-              onClick={() => {
-                setSelectedProvider(null);
-                window.location.href = "/";
-              }}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition"
-            >
-              Choose Another Provider <ArrowRight className="w-4 h-4" />
-            </button>
           </div>
         )}
       </section>
@@ -664,16 +875,21 @@ export default function ServiHubHome() {
             <ul className="text-sm text-slate-300 space-y-2">
               <li
                 className="cursor-pointer hover:text-pink-400 transition"
-                onClick={() => router.push(selectedProvider ? `/cleaning?provider=${selectedProvider}` : "/cleaning")}
+                onClick={() => router.push("/cleaning")}
               >
                 Cleaning
               </li>
-              {/* <li className="cursor-pointer" onClick={() => router.push("/taxi")}>Taxi</li> */}
               <li
                 className="cursor-pointer hover:text-pink-400 transition"
-                onClick={() => router.push(selectedProvider ? `/hotel?provider=${selectedProvider}` : "/hotel")}
+                onClick={() => router.push("/hotel")}
               >
                 Hotel
+              </li>
+              <li
+                className="cursor-pointer hover:text-pink-400 transition"
+                onClick={() => router.push("/taxi")}
+              >
+                Cabs
               </li>
               {/* <li className="cursor-pointer" onClick={() => router.push("/rideshare")}>RideShare</li> */}
             </ul>
@@ -704,3 +920,11 @@ export default function ServiHubHome() {
     100% { transform: translateY(0px) rotate(0deg); opacity: 0.5; }
   }
 `}</style>
+
+export default function ServiHubHome() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div></div>}>
+      <ServiHubHomeContent />
+    </Suspense>
+  );
+}

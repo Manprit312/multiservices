@@ -3,8 +3,9 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, BrushCleaning, Hotel, Car, Sparkles, Phone, Menu, X } from "lucide-react";
+import { Home, BrushCleaning, Hotel, Car, Sparkles, Phone, Menu, X, Search } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // Color themes for different service types
 const colorThemes = {
@@ -58,43 +59,24 @@ interface Provider {
 
 function UnifiedHeaderContent() {
   const [isOpen, setIsOpen] = useState(false);
-  const [providers, setProviders] = useState<Provider[]>([]);
-  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
   const pathname = usePathname();
-  const providerId = searchParams?.get("provider");
 
-  // Fetch providers on mount
-  useEffect(() => {
-    async function fetchProviders() {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/providers?isActive=true`);
-        const data = await res.json();
-        if (data.success) {
-          setProviders(data.providers);
-          // If providerId in URL, set it
-          if (providerId) {
-            const provider = data.providers.find((p: Provider) => p._id === providerId);
-            if (provider) {
-              setSelectedProvider(providerId);
-            }
-          }
+  // Handle search
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to home page with search query
+      router.push(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+      // Scroll to services section after navigation
+      setTimeout(() => {
+        const element = document.getElementById("services");
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-      } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error("Error fetching providers:", err);
-        }
-      }
+      }, 300);
     }
-    fetchProviders();
-  }, [providerId]);
-
-  // Update selected provider when changed
-  const handleProviderChange = (providerId: string) => {
-    setSelectedProvider(providerId);
-    // Update URL with provider
-    const currentPath = pathname || "/";
-    window.location.href = `${currentPath}?provider=${providerId}`;
   };
 
   // Determine theme based on current path
@@ -107,18 +89,33 @@ function UnifiedHeaderContent() {
 
   const theme = getTheme();
 
-  // Build navigation items with provider context
-  const buildHref = (path: string) => {
-    return selectedProvider ? `${path}?provider=${selectedProvider}` : path;
-  };
-
   const navItems = [
-    { name: "Home", icon: <Home size={18} />, href: buildHref("/") },
-    { name: "Cleaning", icon: <BrushCleaning size={18} />, href: buildHref("/cleaning") },
-    { name: "Hotels", icon: <Hotel size={18} />, href: buildHref("/hotel") },
-    { name: "Rides", icon: <Car size={18} />, href: buildHref("/taxi") },
-    { name: "Contact", icon: <Phone size={18} />, href: "#contactus" },
+    { name: "Home", icon: <Home size={18} />, href: "/", scrollTo: null, serviceType: null },
+    { name: "Cleaning", icon: <BrushCleaning size={18} />, href: "/", scrollTo: "services", serviceType: "cleaning" },
+    { name: "Hotels", icon: <Hotel size={18} />, href: "/", scrollTo: "services", serviceType: "hotels" },
+    { name: "Rides", icon: <Car size={18} />, href: "/", scrollTo: "services", serviceType: "cabs" },
+    { name: "Contact", icon: <Phone size={18} />, href: "#contactus", scrollTo: null, serviceType: null },
   ];
+
+  const handleNavClick = (href: string, scrollTo: string | null, serviceType: string | null, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (scrollTo) {
+      // Navigate to home and scroll to services section
+      if (href === "/") {
+        // Set service type in URL to activate the correct tab
+        const url = serviceType ? `/?service=${serviceType}` : "/";
+        router.push(url);
+        setTimeout(() => {
+          const element = document.getElementById(scrollTo);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 100);
+      }
+    } else {
+      router.push(href);
+    }
+  };
 
   return (
     <header className="relative z-50">
@@ -149,7 +146,7 @@ function UnifiedHeaderContent() {
             className="cursor-pointer flex-shrink-0"
           >
             <Link
-              href={buildHref("/")}
+              href="/"
               className={`flex items-center gap-1.5 sm:gap-2 ${theme.primaryColor} font-bold text-lg sm:text-xl md:text-2xl relative group`}
             >
               {/* Logo Icon */}
@@ -182,20 +179,18 @@ function UnifiedHeaderContent() {
             </Link>
           </motion.div>
 
-          {/* Provider Dropdown - Desktop */}
-          <div className="hidden md:flex items-center gap-4 flex-shrink-0">
-            <select
-              value={selectedProvider || ""}
-              onChange={(e) => handleProviderChange(e.target.value)}
-              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border ${theme.border} bg-white ${theme.primaryColor} font-medium text-sm focus:outline-none focus:ring-2 focus:ring-${theme.primary}-300 cursor-pointer max-w-[200px]`}
-            >
-              <option value="">Select Provider</option>
-              {providers.map((provider) => (
-                <option key={provider._id} value={provider._id}>
-                  {provider.name}
-                </option>
-              ))}
-            </select>
+          {/* Search Bar - Desktop */}
+          <div className="hidden md:flex items-center gap-4 flex-1 max-w-md mx-4">
+            <form onSubmit={handleSearch} className="w-full relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search for services..."
+                className={`w-full px-4 py-2 pl-10 rounded-lg border ${theme.border} bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-${theme.primary}-300`}
+              />
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme.icon} w-4 h-4`} />
+            </form>
           </div>
 
           {/* Desktop Navigation */}
@@ -207,13 +202,14 @@ function UnifiedHeaderContent() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Link
+                <a
                   href={item.href}
-                  className={`flex items-center gap-1.5 sm:gap-2 text-slate-700 ${theme.primaryHover} font-medium text-sm xl:text-base transition-all`}
+                  onClick={(e) => handleNavClick(item.href, item.scrollTo, item.serviceType, e)}
+                  className={`flex items-center gap-1.5 sm:gap-2 text-slate-700 ${theme.primaryHover} font-medium text-sm xl:text-base transition-all cursor-pointer`}
                 >
                   <span className="hidden xl:inline">{item.icon}</span>
                   {item.name}
-                </Link>
+                </a>
               </motion.div>
             ))}
           </nav>
@@ -226,20 +222,18 @@ function UnifiedHeaderContent() {
             Get Started
           </motion.button>
 
-          {/* Mobile: Provider Dropdown + Menu Toggle */}
-          <div className="lg:hidden flex items-center gap-2">
-            <select
-              value={selectedProvider || ""}
-              onChange={(e) => handleProviderChange(e.target.value)}
-              className={`px-2 py-1.5 rounded-lg border ${theme.border} bg-white ${theme.primaryColor} text-xs sm:text-sm font-medium focus:outline-none max-w-[100px] sm:max-w-[140px]`}
-            >
-              <option value="">Provider</option>
-              {providers.map((provider) => (
-                <option key={provider._id} value={provider._id}>
-                  {provider.name.length > 15 ? provider.name.substring(0, 15) + '...' : provider.name}
-                </option>
-              ))}
-            </select>
+          {/* Mobile: Search + Menu Toggle */}
+          <div className="lg:hidden flex items-center gap-2 flex-1">
+            <form onSubmit={handleSearch} className="flex-1 relative max-w-[200px]">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
+                className={`w-full px-3 py-1.5 pl-8 rounded-lg border ${theme.border} bg-white text-gray-700 text-xs focus:outline-none focus:ring-1 focus:ring-${theme.primary}-300`}
+              />
+              <Search className={`absolute left-2 top-1/2 transform -translate-y-1/2 ${theme.icon} w-3 h-3`} />
+            </form>
             <button
               className={theme.primaryColor}
               onClick={() => setIsOpen(!isOpen)}
@@ -259,16 +253,32 @@ function UnifiedHeaderContent() {
             transition={{ duration: 0.3 }}
             className={`lg:hidden bg-white/95 backdrop-blur-md border-t ${theme.border} px-4 sm:px-6 py-4 flex flex-col gap-3 max-h-[calc(100vh-80px)] overflow-y-auto`}
           >
+            {/* Mobile Search */}
+            <form onSubmit={handleSearch} className="mb-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search for services..."
+                  className={`w-full px-4 py-2 pl-10 rounded-lg border ${theme.border} bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-${theme.primary}-300`}
+                />
+                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme.icon} w-4 h-4`} />
+              </div>
+            </form>
             {navItems.map((item) => (
-              <Link
+              <a
                 key={item.name}
                 href={item.href}
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-2 text-slate-700 ${theme.primaryHover} font-medium py-2 text-sm sm:text-base`}
+                onClick={(e) => {
+                  setIsOpen(false);
+                  handleNavClick(item.href, item.scrollTo, item.serviceType, e);
+                }}
+                className={`flex items-center gap-2 text-slate-700 ${theme.primaryHover} font-medium py-2 text-sm sm:text-base cursor-pointer`}
               >
                 {item.icon}
                 {item.name}
-              </Link>
+              </a>
             ))}
             <button className={`mt-2 bg-gradient-to-r ${theme.gradient} text-white px-5 py-2.5 rounded-full font-semibold shadow-md hover:shadow-lg text-sm sm:text-base`}>
               Get Started

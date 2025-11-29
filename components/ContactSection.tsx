@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Phone,
   Mail,
@@ -10,6 +11,7 @@ import {
   Circle,
   Triangle,
   Square,
+  CheckCircle,
 } from "lucide-react";
 
 // ✅ Helper type for Lucide icons
@@ -18,8 +20,14 @@ type LucideIconComponent = React.FC<React.SVGProps<SVGSVGElement>>;
 export default function ContactSection() {
   const floatingIcons = ["Star", "Cloud", "Circle", "Triangle", "Square"] as const;
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSubmitting(true);
+    setSubmitStatus("idle");
+    
     const formData = new FormData(e.currentTarget);
     const body = {
       firstName: formData.get("firstName"),
@@ -29,7 +37,8 @@ export default function ContactSection() {
     };
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/contacts`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiUrl}/api/contacts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -37,14 +46,19 @@ export default function ContactSection() {
 
       const data = await res.json();
       if (data.success) {
-        alert("✅ Message sent successfully!");
+        setSubmitStatus("success");
         e.currentTarget.reset();
+        setTimeout(() => setSubmitStatus("idle"), 3000);
       } else {
-        alert("❌ Failed to send message.");
+        setSubmitStatus("error");
+        setTimeout(() => setSubmitStatus("idle"), 3000);
       }
     } catch (error) {
       console.error("Error submitting contact form:", error);
-      alert("⚠️ Something went wrong. Please try again later.");
+      setSubmitStatus("error");
+      setTimeout(() => setSubmitStatus("idle"), 3000);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -218,12 +232,62 @@ export default function ContactSection() {
               className="rounded-xl w-full h-28 px-[calc(1rem+2px)] py-[calc(0.75rem+2px)] outline-none bg-white bg-clip-padding border-[2px] border-transparent [background:linear-gradient(white,white)_padding-box,linear-gradient(90deg,#ff4d98,#ff9f43)_border-box]"
               required
             />
-            <button
+            <motion.button
               type="submit"
-              className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-3 rounded-full font-semibold w-full"
+              disabled={submitting}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-3 rounded-full font-semibold w-full disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
             >
-              Send Message
-            </button>
+              <AnimatePresence mode="wait">
+                {submitStatus === "success" ? (
+                  <motion.span
+                    key="success"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle className="w-5 h-5" />
+                    Message Sent!
+                  </motion.span>
+                ) : submitStatus === "error" ? (
+                  <motion.span
+                    key="error"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    Failed. Try Again
+                  </motion.span>
+                ) : submitting ? (
+                  <motion.span
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                    />
+                    Sending...
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="default"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    Send Message
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
           </form>
         </div>
       </div>

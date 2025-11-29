@@ -14,7 +14,8 @@ import {
   Wallet,
   CheckCircle,
   X,
-  ChevronRight
+  ChevronRight,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -96,7 +97,7 @@ function TaxiPageContent() {
   const searchParams = useSearchParams();
   const providerId = searchParams?.get("provider");
   
-  const [step, setStep] = useState<"select" | "vehicle" | "driver" | "confirm" | "tracking">("select");
+  const [step, setStep] = useState<"select" | "vehicle" | "driver" | "confirm">("select");
   const [pickup, setPickup] = useState("");
   const [drop, setDrop] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null);
@@ -105,8 +106,6 @@ function TaxiPageContent() {
   const [distance, setDistance] = useState<number>(0);
   const [estimatedTime, setEstimatedTime] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "wallet">("cash");
-  const [loading, setLoading] = useState(false);
-  const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -159,41 +158,39 @@ function TaxiPageContent() {
     setStep("confirm");
   };
 
-  const handleConfirmBooking = async () => {
-    if (!pickup || !drop || !selectedVehicle || !selectedDriver) return;
+  const handleConfirmBooking = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    
+    if (!pickup || !drop || !selectedVehicle || !selectedDriver) {
+      // Show visual feedback instead of alert
+      return;
+    }
 
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/book-ride`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    // Store booking data for payment page
+    const bookingData = {
           pickup,
           drop,
-          when: new Date().toISOString(),
-          provider: providerId,
           vehicleType: selectedVehicle.id,
+      vehicleName: selectedVehicle.name,
           driverId: selectedDriver.id,
-          fare,
+      driverName: selectedDriver.name,
+      fare: fare || 0,
           distance,
+      estimatedTime,
           paymentMethod,
-        }),
-      });
-      const data = await res.json();
+      providerId: providerId || "",
+    };
+    
+    try {
+      localStorage.setItem("ride_booking_data", JSON.stringify(bookingData));
       
-      if (data.ok || data.success) {
-        setBookingConfirmed(true);
-        setStep("tracking");
-      } else {
-        alert(data.message || "Booking failed. Please try again.");
-      }
-    } catch (err) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error(err);
-      }
-      alert("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
+      // Redirect to payment page immediately
+      window.location.href = `/taxi/payment`;
+    } catch (error) {
+      console.error("Error storing booking data:", error);
+      // Fallback: try router.push
+      router.push(`/taxi/payment`);
     }
   };
 
@@ -236,7 +233,7 @@ function TaxiPageContent() {
         </div>
         <button
                   onClick={() => router.push("/taxi")}
-                  className="px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 transition-all flex items-center gap-2"
+                  className="px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                   Change Provider
@@ -316,6 +313,82 @@ function TaxiPageContent() {
                   <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Book Your Ride</h2>
                   
             <div className="space-y-4">
+                    {/* Map View - Like Rapido - Always Visible */}
+                    <div className="bg-gray-100 rounded-xl h-80 sm:h-96 mb-4 relative overflow-hidden border-2 border-gray-200">
+                      {pickup && drop ? (
+                        <>
+                          <iframe
+                            src={`https://www.google.com/maps/embed/v1/directions?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyDummyKey'}&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(drop)}&zoom=13`}
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            className="absolute inset-0"
+                            title="Route Map"
+                          />
+                          {/* Map Overlay Controls */}
+                          <div className="absolute top-4 right-4 flex flex-col gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (navigator.geolocation) {
+                                  navigator.geolocation.getCurrentPosition((position) => {
+                                    setPickup(`Current Location (${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)})`);
+                                  });
+                                }
+                              }}
+                              className="bg-white p-2 rounded-lg shadow-lg hover:bg-gray-50 transition-colors"
+                              title="Use current location"
+                            >
+                              <Navigation className="w-5 h-5 text-yellow-600" />
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                          <MapPin className="w-16 h-16 text-gray-400 mb-4 animate-pulse" />
+                          <p className="text-gray-600 font-medium mb-2">Select your locations</p>
+                          <p className="text-sm text-gray-500">Enter pickup and drop locations to see the route on map</p>
+                          {/* Interactive Map Placeholder - Click to set location */}
+                          <div className="mt-6 grid grid-cols-2 gap-4 w-full max-w-md px-4">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (navigator.geolocation) {
+                                  navigator.geolocation.getCurrentPosition((position) => {
+                                    setPickup(`Current Location (${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)})`);
+                                  }, () => {
+                                    setPickup("Current Location");
+                                  });
+                                } else {
+                                  setPickup("Current Location");
+                                }
+                              }}
+                              className="bg-green-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+                            >
+                              <Navigation className="w-4 h-4" />
+                              Set Pickup
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const address = window.prompt("Enter drop location:");
+                                if (address && address.trim()) {
+                                  setDrop(address.trim());
+                                }
+                              }}
+                              className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                            >
+                              <MapPin className="w-4 h-4" />
+                              Set Drop
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="relative">
                       <div className="absolute left-3 top-1/2 -translate-y-1/2">
                         <div className="w-3 h-3 rounded-full bg-green-500"></div>
@@ -325,10 +398,23 @@ function TaxiPageContent() {
                   value={pickup}
                   onChange={(e) => setPickup(e.target.value)}
                         placeholder="Enter pickup location"
-                        className="w-full pl-10 pr-4 py-3 sm:py-4 border-2 border-gray-200 rounded-xl focus:border-yellow-500 focus:outline-none text-sm sm:text-base"
+                        className="w-full pl-10 pr-4 py-3 sm:py-4 border-2 border-gray-200 rounded-xl focus:border-yellow-500 focus:outline-none text-sm sm:text-base text-black placeholder:text-gray-500"
                 />
-                      <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-lg">
-                        <MapPin className="w-5 h-5 text-gray-400" />
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          // Use browser geolocation API
+                          if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition((position) => {
+                              // In production, reverse geocode to get address
+                              setPickup(`Current Location (${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)})`);
+                            });
+                          }
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-lg cursor-pointer"
+                        title="Use current location"
+                      >
+                        <Navigation className="w-5 h-5 text-yellow-600" />
                       </button>
               </div>
 
@@ -341,22 +427,39 @@ function TaxiPageContent() {
                   value={drop}
                   onChange={(e) => setDrop(e.target.value)}
                         placeholder="Enter drop location"
-                        className="w-full pl-10 pr-4 py-3 sm:py-4 border-2 border-gray-200 rounded-xl focus:border-yellow-500 focus:outline-none text-sm sm:text-base"
+                        className="w-full pl-10 pr-4 py-3 sm:py-4 border-2 border-gray-200 rounded-xl focus:border-yellow-500 focus:outline-none text-sm sm:text-base text-black placeholder:text-gray-500"
                 />
-                      <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-lg">
-                        <MapPin className="w-5 h-5 text-gray-400" />
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          // Better UX - show a modal-like input instead of prompt
+                          const address = window.prompt("Enter drop location:");
+                          if (address && address.trim()) {
+                            setDrop(address.trim());
+                          }
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                        title="Select drop location"
+                      >
+                        <MapPin className="w-5 h-5 text-gray-400 hover:text-yellow-600" />
                       </button>
               </div>
 
+                    {(!pickup || !drop) && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+                        ⚠️ Please enter both pickup and drop locations to continue
+                      </div>
+                    )}
                     <button
                       onClick={() => {
-                        if (pickup && drop) setStep("vehicle");
-                        else alert("Please enter both pickup and drop locations");
+                        if (pickup && drop) {
+                          setStep("vehicle");
+                        }
                       }}
                       disabled={!pickup || !drop}
-                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 sm:py-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 sm:py-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base disabled:hover:bg-yellow-500 cursor-pointer"
                     >
-                      Continue to Select Vehicle
+                      {pickup && drop ? "Continue to Select Vehicle" : "Enter Locations to Continue"}
                     </button>
                   </div>
                 </motion.div>
@@ -372,7 +475,7 @@ function TaxiPageContent() {
                     <h2 className="text-2xl sm:text-3xl font-bold">Choose Vehicle</h2>
                     <button
                       onClick={() => setStep("select")}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-gray-500 hover:text-gray-700 cursor-pointer"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -437,7 +540,7 @@ function TaxiPageContent() {
                     </div>
                 <button
                       onClick={() => setStep("vehicle")}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-gray-500 hover:text-gray-700 cursor-pointer"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -493,7 +596,7 @@ function TaxiPageContent() {
                     <h2 className="text-2xl sm:text-3xl font-bold">Confirm Booking</h2>
                     <button
                       onClick={() => setStep("driver")}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-gray-500 hover:text-gray-700 cursor-pointer"
                     >
                       <X className="w-5 h-5" />
                 </button>
@@ -562,87 +665,51 @@ function TaxiPageContent() {
                     {/* Confirm Button */}
                     <button
                       onClick={handleConfirmBooking}
-                      disabled={loading}
+                      disabled={!pickup || !drop || !selectedVehicle || !selectedDriver || !fare}
                       className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg"
                     >
-                      {loading ? "Confirming..." : `Confirm & Pay ₹${fare}`}
+                      {`Proceed to Payment - ₹${fare || 0}`}
                     </button>
                   </div>
                 </motion.div>
               )}
 
-              {step === "tracking" && bookingConfirmed && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 md:p-8"
-                >
-                  <div className="text-center mb-6">
-                    <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-2">Ride Confirmed!</h2>
-                    <p className="text-gray-600">Your driver is on the way</p>
                   </div>
 
-                  {selectedDriver && (
-                    <div className="bg-gray-50 rounded-xl p-4 sm:p-6 mb-6">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold text-xl">
-                          {selectedDriver.name.charAt(0)}
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-lg">{selectedDriver.name}</h3>
-                          <div className="flex items-center gap-2">
-                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                            <span className="text-sm">{selectedDriver.rating}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Vehicle:</span>
-                          <span className="font-semibold">{selectedVehicle?.name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">ETA:</span>
-                          <span className="font-semibold">{selectedDriver.eta} minutes</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Fare:</span>
-                          <span className="font-semibold text-yellow-600">₹{fare}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Navigation className="w-5 h-5 text-yellow-600 animate-pulse" />
-                      <span className="font-semibold">Driver is {selectedDriver?.distance} km away</span>
-                    </div>
-                    <p className="text-sm text-gray-600">You&lsquo;ll be notified when your driver arrives</p>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setStep("select");
-                      setPickup("");
-                      setDrop("");
-                      setSelectedVehicle(null);
-                      setSelectedDriver(null);
-                      setBookingConfirmed(false);
-                    }}
-                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition-all"
-                  >
-                    Book Another Ride
-                  </button>
-                </motion.div>
-              )}
-            </div>
-
-            {/* Right: Map/Summary */}
+            {/* Right: Map Preview & Summary - Rapido Style */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 sticky top-24">
-                {step === "select" && (
+              <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 sticky top-24 space-y-6">
+                {/* Map Preview - Always visible when locations are set */}
+                {pickup && drop && (
+                        <div>
+                    <h3 className="font-bold text-lg sm:text-xl mb-3">Route Preview</h3>
+                    <div className="bg-gray-100 rounded-xl h-48 relative overflow-hidden border border-gray-200">
+                      <iframe
+                        src={`https://www.google.com/maps/embed/v1/directions?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyDummyKey'}&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(drop)}&zoom=12`}
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        className="absolute inset-0"
+                        title="Route Preview"
+                      />
+                          </div>
+                    <div className="mt-3 flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Navigation className="w-4 h-4" />
+                        <span>{distance} km</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Clock className="w-4 h-4" />
+                        <span>~{estimatedTime || Math.round(distance * 2)} min</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {step === "select" && !pickup && !drop && (
                   <div>
                     <h3 className="font-bold text-lg sm:text-xl mb-4">Quick Tips</h3>
                     <ul className="space-y-2 text-sm text-gray-600">
@@ -698,28 +765,6 @@ function TaxiPageContent() {
         </div>
                 )}
 
-                {step === "tracking" && (
-                  <div>
-                    <h3 className="font-bold text-lg sm:text-xl mb-4">Live Tracking</h3>
-                    <div className="bg-gray-100 rounded-xl h-48 sm:h-64 flex items-center justify-center mb-4">
-                      <div className="text-center">
-                        <Navigation className="w-12 h-12 text-yellow-500 mx-auto mb-2 animate-pulse" />
-                        <p className="text-sm text-gray-600">Map View</p>
-                        <p className="text-xs text-gray-500 mt-1">Driver is on the way</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Status:</span>
-                        <span className="font-semibold text-green-600">On the way</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">ETA:</span>
-                        <span className="font-semibold">{selectedDriver?.eta} min</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>

@@ -293,7 +293,7 @@ function HotelBookingContent() {
                               }
                             }}
                             min={minDate}
-                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
+                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-black cursor-pointer"
                           />
                         </div>
                       </div>
@@ -313,7 +313,7 @@ function HotelBookingContent() {
                               bookingData.checkIn ||
                               minDate
                             }
-                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
+                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-black cursor-pointer"
                           />
                         </div>
                       </div>
@@ -329,7 +329,7 @@ function HotelBookingContent() {
                       <button
                         onClick={handleNext}
                         disabled={!bookingData.checkIn || !bookingData.checkOut}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                       >
                         Continue <ArrowRight className="w-4 h-4" />
                       </button>
@@ -350,7 +350,7 @@ function HotelBookingContent() {
                       <h3 className="text-2xl font-bold">Number of Guests</h3>
                       <button
                         onClick={handleBack}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-gray-500 hover:text-gray-700 cursor-pointer"
                       >
                         <X className="w-5 h-5" />
                       </button>
@@ -369,7 +369,7 @@ function HotelBookingContent() {
                               guests: Number(e.target.value),
                             })
                           }
-                          className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none appearance-none"
+                          className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none appearance-none text-black cursor-pointer"
                         >
                           {Array.from({ length: hotel.capacity || 6 }, (_, i) => i + 1).map(
                             (num) => (
@@ -387,13 +387,13 @@ function HotelBookingContent() {
                     <div className="mt-6 flex justify-between">
                       <button
                         onClick={handleBack}
-                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition flex items-center gap-2"
+                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition flex items-center gap-2 cursor-pointer"
                       >
                         <ArrowLeft className="w-4 h-4" /> Back
                       </button>
                       <button
                         onClick={handleNext}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition flex items-center gap-2"
+                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition flex items-center gap-2 cursor-pointer"
                       >
                         Continue <ArrowRight className="w-4 h-4" />
                       </button>
@@ -414,7 +414,7 @@ function HotelBookingContent() {
                       <h3 className="text-2xl font-bold">Guest Information</h3>
                       <button
                         onClick={handleBack}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-gray-500 hover:text-gray-700 cursor-pointer"
                       >
                         <X className="w-5 h-5" />
                       </button>
@@ -433,7 +433,7 @@ function HotelBookingContent() {
                               setBookingData({ ...bookingData, guestName: e.target.value })
                             }
                             placeholder="Enter your full name"
-                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
+                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-black placeholder:text-gray-500"
                             required
                           />
                         </div>
@@ -451,7 +451,7 @@ function HotelBookingContent() {
                               setBookingData({ ...bookingData, guestEmail: e.target.value })
                             }
                             placeholder="your.email@example.com"
-                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
+                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-black placeholder:text-gray-500"
                             required
                           />
                         </div>
@@ -469,7 +469,7 @@ function HotelBookingContent() {
                               setBookingData({ ...bookingData, guestPhone: e.target.value })
                             }
                             placeholder="+91 98765 43210"
-                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
+                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-black placeholder:text-gray-500"
                           />
                         </div>
                       </div>
@@ -477,14 +477,14 @@ function HotelBookingContent() {
                     <div className="mt-6 flex justify-between">
                       <button
                         onClick={handleBack}
-                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition flex items-center gap-2"
+                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition flex items-center gap-2 cursor-pointer"
                       >
                         <ArrowLeft className="w-4 h-4" /> Back
                       </button>
                       <button
                         onClick={handleNext}
                         disabled={!bookingData.guestName || !bookingData.guestEmail}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                       >
                         Continue <ArrowRight className="w-4 h-4" />
                       </button>
@@ -502,10 +502,10 @@ function HotelBookingContent() {
                     className="bg-white rounded-2xl shadow-lg p-6 sm:p-8"
                   >
                     <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-2xl font-bold">Confirm Booking</h3>
+                      <h3 className="text-2xl font-bold text-gray-900">Confirm Booking</h3>
                       <button
                         onClick={handleBack}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-gray-500 hover:text-gray-700 cursor-pointer"
                       >
                         <X className="w-5 h-5" />
                       </button>
@@ -514,35 +514,35 @@ function HotelBookingContent() {
                     <div className="space-y-6">
                       {/* Booking Summary */}
                       <div className="bg-gray-50 rounded-xl p-6">
-                        <h4 className="font-semibold mb-4">Booking Summary</h4>
+                        <h4 className="font-semibold mb-4 text-gray-900">Booking Summary</h4>
                         <div className="space-y-3 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Hotel:</span>
-                            <span className="font-medium">{hotel.name}</span>
+                            <span className="text-gray-900">Hotel:</span>
+                            <span className="font-medium text-gray-900">{hotel.name}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Check-in:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-900">Check-in:</span>
+                            <span className="font-medium text-gray-900">
                               {new Date(bookingData.checkIn).toLocaleDateString()}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Check-out:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-900">Check-out:</span>
+                            <span className="font-medium text-gray-900">
                               {new Date(bookingData.checkOut).toLocaleDateString()}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Guests:</span>
-                            <span className="font-medium">{bookingData.guests}</span>
+                            <span className="text-gray-900">Guests:</span>
+                            <span className="font-medium text-gray-900">{bookingData.guests}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Nights:</span>
-                            <span className="font-medium">{nights}</span>
+                            <span className="text-gray-900">Nights:</span>
+                            <span className="font-medium text-gray-900">{nights}</span>
                           </div>
                           <div className="border-t pt-3 mt-3">
                             <div className="flex justify-between">
-                              <span className="font-bold">Total Amount:</span>
+                              <span className="font-bold text-gray-900">Total Amount:</span>
                               <span className="font-bold text-blue-600 text-lg">
                                 ₹{totalAmount.toLocaleString()}
                               </span>
@@ -553,20 +553,20 @@ function HotelBookingContent() {
 
                       {/* Guest Info */}
                       <div className="bg-gray-50 rounded-xl p-6">
-                        <h4 className="font-semibold mb-4">Guest Information</h4>
+                        <h4 className="font-semibold mb-4 text-gray-900">Guest Information</h4>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Name:</span>
-                            <span className="font-medium">{bookingData.guestName}</span>
+                            <span className="text-gray-900">Name:</span>
+                            <span className="font-medium text-gray-900">{bookingData.guestName}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Email:</span>
-                            <span className="font-medium">{bookingData.guestEmail}</span>
+                            <span className="text-gray-900">Email:</span>
+                            <span className="font-medium text-gray-900">{bookingData.guestEmail}</span>
                           </div>
                           {bookingData.guestPhone && (
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Phone:</span>
-                              <span className="font-medium">{bookingData.guestPhone}</span>
+                              <span className="text-gray-900">Phone:</span>
+                              <span className="font-medium text-gray-900">{bookingData.guestPhone}</span>
                             </div>
                           )}
                         </div>
@@ -576,14 +576,14 @@ function HotelBookingContent() {
                     <div className="mt-6 flex justify-between">
                       <button
                         onClick={handleBack}
-                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition flex items-center gap-2"
+                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition flex items-center gap-2 cursor-pointer"
                       >
                         <ArrowLeft className="w-4 h-4" /> Back
                       </button>
                       <button
                         onClick={handleConfirmBooking}
                         disabled={bookingLoading}
-                        className="px-8 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="px-8 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                       >
                         {bookingLoading ? (
                           <>
@@ -622,13 +622,13 @@ function HotelBookingContent() {
                     <div className="flex gap-4 justify-center">
                       <button
                         onClick={() => router.push(`/hotel?provider=${providerId || ""}`)}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition"
+                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition cursor-pointer"
                       >
                         Book Another Hotel
                       </button>
                       <button
                         onClick={() => router.push("/")}
-                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition"
+                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition cursor-pointer"
                       >
                         Go to Home
                       </button>
@@ -642,31 +642,31 @@ function HotelBookingContent() {
             {step !== "success" && (
               <div className="lg:col-span-1">
                 <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
-                  <h3 className="font-bold text-lg mb-4">Price Summary</h3>
+                  <h3 className="font-bold text-lg mb-4 text-gray-900">Price Summary</h3>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Price per night:</span>
-                      <span className="font-medium">₹{hotel.price.toLocaleString()}</span>
+                      <span className="text-gray-900">Price per night:</span>
+                      <span className="font-medium text-gray-900">₹{hotel.price.toLocaleString()}</span>
                     </div>
                     {nights > 0 && (
                       <>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Nights:</span>
-                          <span className="font-medium">{nights}</span>
+                          <span className="text-gray-900">Nights:</span>
+                          <span className="font-medium text-gray-900">{nights}</span>
                         </div>
                         <div className="border-t pt-3 mt-3">
                           <div className="flex justify-between mb-2">
-                            <span className="font-semibold">Subtotal:</span>
-                            <span className="font-semibold">
+                            <span className="font-semibold text-gray-900">Subtotal:</span>
+                            <span className="font-semibold text-gray-900">
                               ₹{(hotel.price * nights).toLocaleString()}
                             </span>
                           </div>
-                          <div className="flex justify-between text-xs text-gray-500">
+                          <div className="flex justify-between text-xs text-gray-600">
                             <span>Taxes & fees included</span>
                           </div>
                           <div className="border-t pt-3 mt-3">
                             <div className="flex justify-between">
-                              <span className="font-bold text-lg">Total:</span>
+                              <span className="font-bold text-lg text-gray-900">Total:</span>
                               <span className="font-bold text-lg text-blue-600">
                                 ₹{totalAmount.toLocaleString()}
                               </span>
@@ -676,7 +676,7 @@ function HotelBookingContent() {
                       </>
                     )}
                     {nights === 0 && (
-                      <p className="text-gray-500 text-xs mt-4">
+                      <p className="text-gray-700 text-xs mt-4">
                         Select dates to see pricing
                       </p>
                     )}

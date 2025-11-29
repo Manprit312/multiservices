@@ -39,20 +39,11 @@ interface Hotel {
   };
 }
 
-interface Provider {
-  _id: string;
-  name: string;
-  logo?: string;
-  description?: string;
-  rating?: number;
-}
 
 const commonAmenities = ["WiFi", "AC", "Parking", "Restaurant", "Pool", "Gym", "Spa", "Breakfast", "Room Service"];
 
 function HotelPageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const providerId = searchParams?.get("provider");
 
   // Search form state
   const [location, setLocation] = useState("");
@@ -72,29 +63,6 @@ function HotelPageContent() {
   // Data state
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
-
-  // Fetch provider data
-  useEffect(() => {
-    async function fetchProvider() {
-      if (!providerId) {
-        setSelectedProvider(null);
-        return;
-      }
-      try {
-        const res = await fetch(`${API_BASE}/api/providers/${providerId}`);
-        const data = await res.json();
-        if (data.success && data.provider) {
-          setSelectedProvider(data.provider);
-        }
-      } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error("Failed to fetch provider:", err);
-        }
-      }
-    }
-    fetchProvider();
-  }, [providerId]);
 
   // Fetch hotels with filters
   useEffect(() => {
@@ -102,7 +70,6 @@ function HotelPageContent() {
       setLoading(true);
       try {
         const params = new URLSearchParams();
-        if (providerId) params.append("providerId", providerId);
         if (location) params.append("location", location);
         if (minPrice) params.append("minPrice", minPrice);
         if (maxPrice) params.append("maxPrice", maxPrice);
@@ -126,7 +93,7 @@ function HotelPageContent() {
       }
     }
     fetchHotels();
-  }, [providerId, location, minPrice, maxPrice, guests, selectedAmenities, minRating, sortBy, sortOrder]);
+  }, [location, minPrice, maxPrice, guests, selectedAmenities, minRating, sortBy, sortOrder]);
 
   const handleAmenityToggle = (amenity: string) => {
     setSelectedAmenities(prev =>
@@ -153,80 +120,7 @@ function HotelPageContent() {
     <>
       <UnifiedHeader />
       <main className="min-h-screen text-slate-900 antialiased bg-gradient-to-b from-blue-50 to-sky-100 relative overflow-hidden pt-16">
-        {/* Provider Banner */}
-        {providerId && selectedProvider && (
-          <section className="max-w-7xl mx-auto px-6 lg:px-8 mb-8">
-            <div className="bg-gradient-to-r from-blue-50 to-sky-50 rounded-2xl p-6 shadow-lg border-2 border-blue-200">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  {selectedProvider.logo ? (
-                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow">
-                      <Image
-                        src={selectedProvider.logo}
-                        alt={selectedProvider.name}
-                        width={64}
-                        height={64}
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-sky-500 flex items-center justify-center text-white font-bold text-xl border-2 border-white shadow">
-                      {selectedProvider.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900">Hotels from {selectedProvider.name}</h3>
-                    {selectedProvider.description && (
-                      <p className="text-sm text-gray-600 mt-1">{selectedProvider.description}</p>
-                    )}
-                    {selectedProvider.rating && (
-                      <div className="flex items-center gap-1 mt-2">
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span className="text-sm font-semibold">{selectedProvider.rating.toFixed(1)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={() => router.push("/hotel")}
-                  className="px-4 py-2 rounded-lg bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 transition-all flex items-center gap-2"
-                >
-                  <X className="w-4 h-4" />
-                  Change Provider
-                </button>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {!providerId && (
-          <section className="max-w-7xl mx-auto px-6 py-12">
-            <div className="text-center py-16 bg-gradient-to-br from-blue-50 to-sky-50 rounded-3xl border-2 border-dashed border-blue-200">
-              <Sparkles className="w-16 h-16 text-blue-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-3 text-gray-800">No Provider Selected</h2>
-              <p className="text-gray-600 mb-6">Please select a service provider from the home page to view their hotels.</p>
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition"
-              >
-                Choose Provider <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </section>
-        )}
-
-        {providerId && !selectedProvider && (
-          <section className="max-w-7xl mx-auto px-6 py-12">
-            <div className="text-center py-16">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading provider information...</p>
-            </div>
-          </section>
-        )}
-
-        {providerId && selectedProvider && (
-          <>
-            {/* HERO SECTION */}
+        {/* HERO SECTION */}
             <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 to-sky-100">
               <div className="relative h-[600px] sm:h-[700px] w-full">
                 <Image
@@ -496,7 +390,7 @@ function HotelPageContent() {
                       whileHover={{ scale: 1.02, y: -4 }}
                       className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all cursor-pointer group"
                     >
-                      <Link href={`/hotel/${hotel._id}?provider=${providerId || ''}`} className="block w-full h-full">
+                      <Link href={`/hotel/${hotel._id}`} className="block w-full h-full">
                         <div className="relative h-56 overflow-hidden">
                           <Image
                             src={hotel.images?.[0] || DEFAULT_IMAGES.hotelPlaceholder}
@@ -558,8 +452,6 @@ function HotelPageContent() {
                 </div>
               )}
             </section>
-          </>
-        )}
       </main>
     </>
   );

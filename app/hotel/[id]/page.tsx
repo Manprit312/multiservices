@@ -36,8 +36,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 function HotelSingleContent() {
   const { id } = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const providerId = searchParams?.get("provider");
   
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,10 +72,7 @@ function HotelSingleContent() {
     );
 
   const handleBookNow = () => {
-    const url = providerId
-      ? `/hotel/${id}/book?provider=${providerId}`
-      : `/hotel/${id}/book`;
-    router.push(url);
+    router.push(`/hotel/${id}/book`);
   };
 
   return (
@@ -231,7 +226,7 @@ function HotelSingleContent() {
         >
           <div>
             <p className="text-2xl font-bold text-sky-700">
-              ${hotel.price} / night
+              ₹{hotel.price} / night
             </p>
             <p className="text-slate-600 text-sm mt-1">
               Includes all amenities and taxes.
