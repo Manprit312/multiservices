@@ -3,21 +3,22 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, BrushCleaning, Hotel, Car, Sparkles, Phone, Menu, X, Search } from "lucide-react";
+import { Home, BrushCleaning, Hotel, Car, Sparkles, Phone, Menu, X, Search, User, Building2, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Color themes for different service types
+// Color themes for different service types - All green
 const colorThemes = {
   default: {
-    primary: "pink",
-    primaryColor: "text-pink-600",
-    primaryBg: "bg-pink-500",
-    primaryHover: "hover:text-pink-600",
-    gradient: "from-pink-500 to-purple-600",
-    border: "border-pink-100",
-    icon: "text-pink-400",
-    glow: "rgba(236,72,153,0.7)",
+    primary: "green",
+    primaryColor: "text-green-600",
+    primaryBg: "bg-green-500",
+    primaryHover: "hover:text-green-600",
+    gradient: "from-green-600 to-emerald-500",
+    border: "border-green-100",
+    icon: "text-emerald-400",
+    glow: "rgba(16,185,129,0.7)",
   },
   cleaning: {
     primary: "green",
@@ -30,24 +31,24 @@ const colorThemes = {
     glow: "rgba(16,185,129,0.7)",
   },
   hotel: {
-    primary: "blue",
-    primaryColor: "text-blue-600",
-    primaryBg: "bg-blue-500",
-    primaryHover: "hover:text-blue-600",
-    gradient: "from-blue-600 to-sky-500",
-    border: "border-blue-100",
-    icon: "text-sky-400",
-    glow: "rgba(56,189,248,0.7)",
+    primary: "green",
+    primaryColor: "text-green-600",
+    primaryBg: "bg-green-500",
+    primaryHover: "hover:text-green-600",
+    gradient: "from-green-600 to-emerald-500",
+    border: "border-green-100",
+    icon: "text-emerald-400",
+    glow: "rgba(16,185,129,0.7)",
   },
   ride: {
-    primary: "yellow",
-    primaryColor: "text-yellow-600",
-    primaryBg: "bg-yellow-500",
-    primaryHover: "hover:text-yellow-600",
-    gradient: "from-yellow-500 to-orange-500",
-    border: "border-yellow-100",
-    icon: "text-yellow-400",
-    glow: "rgba(234,179,8,0.7)",
+    primary: "green",
+    primaryColor: "text-green-600",
+    primaryBg: "bg-green-500",
+    primaryHover: "hover:text-green-600",
+    gradient: "from-green-600 to-emerald-500",
+    border: "border-green-100",
+    icon: "text-emerald-400",
+    glow: "rgba(16,185,129,0.7)",
   },
 };
 
@@ -60,8 +61,10 @@ interface Provider {
 function UnifiedHeaderContent() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const { user, userRole, logout } = useAuth();
 
   // Handle search
   const handleSearch = (e: React.FormEvent) => {
@@ -118,7 +121,7 @@ function UnifiedHeaderContent() {
   };
 
   return (
-    <header className="relative z-50">
+    <header className="relative z-[9999]" style={{ position: 'relative', zIndex: 9999 }}>
       {/* Floating Animated Shapes */}
       <motion.div
         animate={{ y: [0, -12, 0] }}
@@ -137,8 +140,21 @@ function UnifiedHeaderContent() {
       />
 
       {/* Navbar */}
-      <div className="w-full fixed top-0 left-0 backdrop-blur-lg bg-white/70 shadow-sm border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 sm:py-3 flex items-center justify-between font-[Poppins]">
+      <div 
+        className="w-full fixed top-0 left-0 right-0 bg-white shadow-lg border-b-2 border-green-200" 
+        style={{ 
+          position: 'fixed', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          backgroundColor: '#ffffff', 
+          zIndex: 9999,
+          width: '100%',
+          minHeight: '64px',
+    
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 lg:py-5 flex items-center justify-between font-[Poppins]">
           {/* Logo - Updates based on selected provider */}
           <motion.div
             whileHover={{ scale: 1.1, rotate: -2 }}
@@ -194,7 +210,7 @@ function UnifiedHeaderContent() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
+          <nav className="hidden lg:flex items-center gap-3 xl:gap-4">
             {navItems.map((item, index) => (
               <motion.div
                 key={item.name}
@@ -205,7 +221,7 @@ function UnifiedHeaderContent() {
                 <a
                   href={item.href}
                   onClick={(e) => handleNavClick(item.href, item.scrollTo, item.serviceType, e)}
-                  className={`flex items-center gap-1.5 sm:gap-2 text-slate-700 ${theme.primaryHover} font-medium text-sm xl:text-base transition-all cursor-pointer`}
+                  className={`flex items-center gap-1.5 sm:gap-2 text-slate-700 ${theme.primaryHover} font-medium text-sm xl:text-base transition-all cursor-pointer px-4 py-2 rounded-xl border-2 border-green-100 bg-white hover:bg-green-50 hover:border-green-300 shadow-sm hover:shadow-md`}
                 >
                   <span className="hidden xl:inline">{item.icon}</span>
                   {item.name}
@@ -214,16 +230,119 @@ function UnifiedHeaderContent() {
             ))}
           </nav>
 
-          {/* CTA Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            className={`hidden lg:inline-block bg-gradient-to-r ${theme.gradient} text-white px-4 xl:px-5 py-1.5 xl:py-2 rounded-full font-semibold text-sm xl:text-base shadow-md hover:shadow-lg`}
-          >
-            Get Started
-          </motion.button>
+          {/* User Menu / Auth Buttons */}
+          {user ? (
+            <div className="hidden lg:flex items-center gap-3 relative">
+              {/* Register as Provider Button (if not admin) */}
+              {userRole !== "admin" && userRole !== "superadmin" && (
+                <Link
+                  href="/register-provider"
+                  className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
+                >
+                  <Building2 className="w-4 h-4" />
+                  Become Provider
+                </Link>
+              )}
+              
+              {/* User Profile Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-green-50 transition-colors"
+                >
+                  {user.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt={user.displayName || "User"}
+                      className="w-8 h-8 rounded-full border-2 border-green-200"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                      <User className="w-4 h-4 text-green-600" />
+                    </div>
+                  )}
+                  <span className="text-sm font-medium text-gray-700 hidden xl:block">
+                    {user.displayName || user.email?.split("@")[0]}
+                  </span>
+                </button>
+
+                {/* Dropdown Menu */}
+                {userMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setUserMenuOpen(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden"
+                    >
+                      <div className="p-2">
+                        <Link
+                          href="/profile"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <User className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm text-gray-700">My Profile</span>
+                        </Link>
+                        {userRole === "admin" && (
+                          <Link
+                            href="/admin"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <Building2 className="w-4 h-4 text-green-600" />
+                            <span className="text-sm text-gray-700">Admin Dashboard</span>
+                          </Link>
+                        )}
+                        {userRole === "superadmin" && (
+                          <Link
+                            href="/superadmin"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <Building2 className="w-4 h-4 text-purple-600" />
+                            <span className="text-sm text-gray-700">Superadmin Dashboard</span>
+                          </Link>
+                        )}
+                        <button
+                          onClick={async () => {
+                            await logout();
+                            setUserMenuOpen(false);
+                            router.push("/");
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-red-50 transition-colors text-left"
+                        >
+                          <LogOut className="w-4 h-4 text-red-600" />
+                          <span className="text-sm text-red-600">Logout</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="hidden lg:flex items-center gap-3 px-4">
+              <Link
+                href="/login"
+                className="text-gray-700 hover:text-green-600 font-medium text-sm xl:text-base transition-colors"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className={`bg-gradient-to-r ${theme.gradient} text-white px-4 xl:px-5 py-1.5 xl:py-2 rounded-full font-semibold text-sm xl:text-base shadow-md hover:shadow-lg transition-all`}
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
 
           {/* Mobile: Search + Menu Toggle */}
-          <div className="lg:hidden flex items-center gap-2 flex-1">
+          <div className="lg:hidden flex justify-between gap-2 flex-1">
             <form onSubmit={handleSearch} className="flex-1 relative max-w-[200px]">
               <input
                 type="text"
@@ -244,46 +363,153 @@ function UnifiedHeaderContent() {
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
+        {/* Mobile Dropdown Menu - Slides from right */}
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-            className={`lg:hidden bg-white/95 backdrop-blur-md border-t ${theme.border} px-4 sm:px-6 py-4 flex flex-col gap-3 max-h-[calc(100vh-80px)] overflow-y-auto`}
-          >
-            {/* Mobile Search */}
-            <form onSubmit={handleSearch} className="mb-2">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for services..."
-                  className={`w-full px-4 py-2 pl-10 rounded-lg border ${theme.border} bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-${theme.primary}-300`}
-                />
-                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme.icon} w-4 h-4`} />
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={() => setIsOpen(false)}
+              className="lg:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+            />
+            {/* Menu Panel */}
+            <motion.div
+              initial={{ x: "100%", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "100%", opacity: 0 }}
+              transition={{ 
+                type: "spring",
+                damping: 25,
+                stiffness: 200,
+                duration: 0.4
+              }}
+              className={`lg:hidden fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white/98 backdrop-blur-lg shadow-2xl z-50 flex flex-col border-l ${theme.border}`}
+            >
+              {/* Menu Header */}
+              <div className="flex items-center justify-between p-6 border-b border-green-100">
+                <h2 className="text-green-700 font-bold text-xl">Menu</h2>
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setIsOpen(false)}
+                  className={`${theme.primaryColor} p-2 rounded-full hover:bg-green-50 transition-colors`}
+                >
+                  <X size={24} />
+                </motion.button>
               </div>
-            </form>
-            {navItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                onClick={(e) => {
-                  setIsOpen(false);
-                  handleNavClick(item.href, item.scrollTo, item.serviceType, e);
-                }}
-                className={`flex items-center gap-2 text-slate-700 ${theme.primaryHover} font-medium py-2 text-sm sm:text-base cursor-pointer`}
-              >
-                {item.icon}
-                {item.name}
-              </a>
-            ))}
-            <button className={`mt-2 bg-gradient-to-r ${theme.gradient} text-white px-5 py-2.5 rounded-full font-semibold shadow-md hover:shadow-lg text-sm sm:text-base`}>
-              Get Started
-            </button>
-          </motion.div>
+
+              {/* Menu Content */}
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+                {/* Mobile Search */}
+                <motion.form 
+                  onSubmit={handleSearch}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="mb-4"
+                >
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search for services..."
+                      className={`w-full px-4 py-2.5 pl-10 rounded-xl border-2 ${theme.border} bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-400 transition-all`}
+                    />
+                    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme.icon} w-4 h-4`} />
+                  </div>
+                </motion.form>
+
+                {/* Menu Items */}
+                <div className="flex flex-col gap-2">
+                  {navItems.map((item, index) => (
+                    <motion.a
+                      key={item.name}
+                      href={item.href}
+                      onClick={(e) => {
+                        setIsOpen(false);
+                        handleNavClick(item.href, item.scrollTo, item.serviceType, e);
+                      }}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.15 + index * 0.05, type: "spring", stiffness: 200 }}
+                      whileHover={{ x: 5, scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`flex items-center gap-3 text-slate-700 ${theme.primaryHover} font-medium py-3.5 px-4 text-sm sm:text-base cursor-pointer rounded-xl border-2 border-green-100 bg-white hover:bg-green-50 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md`}
+                    >
+                      <span className={`${theme.icon}`}>{item.icon}</span>
+                      <span>{item.name}</span>
+                    </motion.a>
+                  ))}
+                </div>
+
+                {/* Auth Section */}
+                {user ? (
+                  <div className="mt-6 space-y-2">
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl bg-green-50 text-green-700 font-semibold hover:bg-green-100 transition-colors"
+                    >
+                      <User className="w-5 h-5" />
+                      <span>My Profile</span>
+                    </Link>
+                    {userRole !== "admin" && userRole !== "superadmin" && (
+                      <Link
+                        href="/register-provider"
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-3 ml-2 px-4 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors"
+                      >
+                        <Building2 className="w-5 h-5" />
+                        <span>Become Provider</span>
+                      </Link>
+                    )}
+                    {(userRole === "admin" || userRole === "superadmin") && (
+                      <Link
+                        href={userRole === "superadmin" ? "/superadmin" : "/admin"}
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors"
+                      >
+                        <Building2 className="w-5 h-5" />
+                        <span>{userRole === "superadmin" ? "Superadmin" : "Admin"} Dashboard</span>
+                      </Link>
+                    )}
+                    <button
+                      onClick={async () => {
+                        await logout();
+                        setIsOpen(false);
+                        router.push("/");
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition-colors"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-6 space-y-2">
+                    <Link
+                      href="/login"
+                      onClick={() => setIsOpen(false)}
+                      className="block w-full text-center px-5 py-3.5 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition-colors"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/register"
+                      onClick={() => setIsOpen(false)}
+                      className={`block w-full text-center bg-gradient-to-r ${theme.gradient} text-white px-5 py-3.5 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200`}
+                    >
+                      Sign Up
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </>
         )}
       </div>
     </header>

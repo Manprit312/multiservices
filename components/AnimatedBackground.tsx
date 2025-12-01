@@ -11,7 +11,7 @@ export default function AnimatedBackground() {
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute bottom-10 right-10 w-[28rem] h-[28rem] bg-gradient-to-br from-teal-400 via-cyan-400 to-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+        className="absolute bottom-10 right-10 w-[28rem] h-[28rem] bg-gradient-to-br from-emerald-400 via-green-400 to-teal-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
         animate={{ x: [0, -50, 0], y: [0, 30, 0] }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
       />

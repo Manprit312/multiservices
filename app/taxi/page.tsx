@@ -22,6 +22,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Truck } from "lucide-react";
 import UnifiedHeader from "@/components/UnifiedHeader";
+import RequireAuth from "@/components/RequireAuth";
 
 interface VehicleType {
   id: string;
@@ -195,7 +196,7 @@ function TaxiPageContent() {
   };
 
   return (
-    <>
+    <RequireAuth>
       <UnifiedHeader />
       <div className="relative min-h-screen overflow-hidden text-gray-900 bg-gradient-to-b from-yellow-50 to-white pt-16 sm:pt-20">
         {providerId && selectedProvider && (
@@ -771,7 +772,7 @@ function TaxiPageContent() {
         </div>
         )}
       </div>
-    </>
+    </RequireAuth>
   );
 }
 

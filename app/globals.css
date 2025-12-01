@@ -4,6 +4,34 @@
   --background: #ffffff;
   --foreground: #0f172a; /* text-slate-900 */
   --font-sans: var(--font-poppins);
+  
+  /* Green Color Variants - Global */
+  --green-primary: #16a34a;
+  --green-secondary: #10b981;
+  --green-tertiary: #059669;
+  --green-quaternary: #047857;
+  --green-light: #34d399;
+  --green-lighter: #6ee7b7;
+  --green-lightest: #a7f3d0;
+  --green-dark: #15803d;
+  --green-darker: #166534;
+  
+  /* Green Gradients */
+  --green-gradient-start: #16a34a;
+  --green-gradient-end: #10b981;
+  --green-gradient-light: linear-gradient(135deg, #34d399, #6ee7b7);
+  --green-gradient-medium: linear-gradient(135deg, #10b981, #16a34a);
+  --green-gradient-dark: linear-gradient(135deg, #059669, #047857);
+  
+  /* Green Borders */
+  --green-border-light: #d1fae5;
+  --green-border-medium: #a7f3d0;
+  --green-border-dark: #6ee7b7;
+  
+  /* Green Backgrounds */
+  --green-bg-light: #f0fdf4;
+  --green-bg-medium: #dcfce7;
+  --green-bg-dark: #bbf7d0;
 }
 
 @theme inline {
@@ -14,7 +42,6 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-  
     --foreground: #ffffff;
   }
 }
@@ -23,4 +50,26 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
+}
+
+/* Global Green Utility Classes */
+.text-green-primary { color: var(--green-primary); }
+.text-green-secondary { color: var(--green-secondary); }
+.bg-green-primary { background-color: var(--green-primary); }
+.bg-green-secondary { background-color: var(--green-secondary); }
+.border-green-primary { border-color: var(--green-primary); }
+.border-green-light { border-color: var(--green-border-light); }
+.bg-gradient-green { background: var(--green-gradient-medium); }
+
+/* Floating animations */
+@keyframes float {
+  0% { transform: translateY(0px); opacity: 0.4; }
+  50% { transform: translateY(-25px); opacity: 0.7; }
+  100% { transform: translateY(0px); opacity: 0.4; }
+}
+
+@keyframes float-rotate {
+  0% { transform: translateY(0px) rotate(0deg); opacity: 0.5; }
+  50% { transform: translateY(-25px) rotate(25deg); opacity: 0.8; }
+  100% { transform: translateY(0px) rotate(0deg); opacity: 0.5; }
 }

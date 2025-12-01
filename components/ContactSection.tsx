@@ -69,7 +69,7 @@ export default function ContactSection() {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, rgba(255,249,251,0.7) 0%, rgba(254,242,255,0.7) 100%)",
+            "linear-gradient(180deg, rgba(240,253,244,0.7) 0%, rgba(220,252,231,0.7) 100%)",
         }}
         aria-hidden
       />
@@ -90,7 +90,7 @@ export default function ContactSection() {
           const top = Math.random() * 100;
           const left = Math.random() * 100;
           const size = Math.floor(Math.random() * 22) + 12;
-          const color = Math.random() > 0.5 ? "#ff6b6b" : "#ff9f43";
+          const color = Math.random() > 0.5 ? "#10b981" : "#16a34a";
           const duration = Math.random() * 6 + 6;
           const delay = Math.random() * 5;
           const rotate = Math.random() > 0.5;
@@ -118,7 +118,7 @@ export default function ContactSection() {
         aria-hidden
         className="absolute -left-8 -top-10 w-72 h-72 rounded-full"
         style={{
-          background: "linear-gradient(135deg,#ff4d98,#7c3aed)",
+          background: "linear-gradient(135deg,#16a34a,#10b981)",
           filter: "blur(36px)",
           opacity: 0.22,
           transform: "rotate(12deg)",
@@ -128,7 +128,7 @@ export default function ContactSection() {
         aria-hidden
         className="absolute right-6 top-20 w-44 h-44 rounded-full float-blob"
         style={{
-          background: "linear-gradient(135deg,#ff8ab8,#f0a6ff)",
+          background: "linear-gradient(135deg,#34d399,#6ee7b7)",
           filter: "blur(24px)",
           opacity: 0.28,
         }}
@@ -137,7 +137,7 @@ export default function ContactSection() {
         aria-hidden
         className="absolute left-6 bottom-20 w-56 h-56 rounded-full float-blob"
         style={{
-          background: "linear-gradient(135deg,#ffd166,#ff6b6b)",
+          background: "linear-gradient(135deg,#059669,#047857)",
           filter: "blur(26px)",
           opacity: 0.15,
           animationDelay: "0.8s",
@@ -187,15 +187,15 @@ export default function ContactSection() {
             </p>
             <div className="space-y-4 text-slate-700">
               <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-pink-500" />
+                <Phone className="w-5 h-5 text-green-500" />
                 <span>+91 98765 43210</span>
               </div>
               <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-pink-500" />
+                <Mail className="w-5 h-5 text-green-500" />
                 <span>hello@servihub.com</span>
               </div>
               <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-pink-500" />
+                <MapPin className="w-5 h-5 text-green-500" />
                 <span>Ludhiana, Punjab</span>
               </div>
             </div>
@@ -210,26 +210,26 @@ export default function ContactSection() {
               <input
                 name="firstName"
                 placeholder="First name"
-                className="rounded-xl px-[calc(1rem+2px)] py-[calc(0.75rem+2px)] outline-none bg-white bg-clip-padding border-[2px] border-transparent [background:linear-gradient(white,white)_padding-box,linear-gradient(90deg,#ff4d98,#ff9f43)_border-box]"
+                className="rounded-xl px-[calc(1rem+2px)] py-[calc(0.75rem+2px)] outline-none bg-white bg-clip-padding border-[2px] border-transparent [background:linear-gradient(white,white)_padding-box,linear-gradient(90deg,#16a34a,#10b981)_border-box]"
                 required
               />
               <input
                 name="lastName"
                 placeholder="Last name"
-                className="rounded-xl px-[calc(1rem+2px)] py-[calc(0.75rem+2px)] outline-none bg-white bg-clip-padding border-[2px] border-transparent [background:linear-gradient(white,white)_padding-box,linear-gradient(90deg,#ff4d98,#ff9f43)_border-box]"
+                className="rounded-xl px-[calc(1rem+2px)] py-[calc(0.75rem+2px)] outline-none bg-white bg-clip-padding border-[2px] border-transparent [background:linear-gradient(white,white)_padding-box,linear-gradient(90deg,#16a34a,#10b981)_border-box]"
               />
             </div>
             <input
               name="email"
               type="email"
               placeholder="Email"
-              className="rounded-xl px-[calc(1rem+2px)] py-[calc(0.75rem+2px)] outline-none bg-white bg-clip-padding border-[2px] border-transparent [background:linear-gradient(white,white)_padding-box,linear-gradient(90deg,#ff4d98,#ff9f43)_border-box]"
+              className="rounded-xl px-[calc(1rem+2px)] py-[calc(0.75rem+2px)] outline-none bg-white bg-clip-padding border-[2px] border-transparent [background:linear-gradient(white,white)_padding-box,linear-gradient(90deg,#16a34a,#10b981)_border-box]"
               required
             />
             <textarea
               name="message"
               placeholder="Your message..."
-              className="rounded-xl w-full h-28 px-[calc(1rem+2px)] py-[calc(0.75rem+2px)] outline-none bg-white bg-clip-padding border-[2px] border-transparent [background:linear-gradient(white,white)_padding-box,linear-gradient(90deg,#ff4d98,#ff9f43)_border-box]"
+              className="rounded-xl w-full h-28 px-[calc(1rem+2px)] py-[calc(0.75rem+2px)] outline-none bg-white bg-clip-padding border-[2px] border-transparent [background:linear-gradient(white,white)_padding-box,linear-gradient(90deg,#16a34a,#10b981)_border-box]"
               required
             />
             <motion.button
@@ -237,7 +237,7 @@ export default function ContactSection() {
               disabled={submitting}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-3 rounded-full font-semibold w-full disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
+              className="bg-gradient-to-r from-green-600 to-emerald-500 text-white px-6 py-3 rounded-full font-semibold w-full disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
             >
               <AnimatePresence mode="wait">
                 {submitStatus === "success" ? (

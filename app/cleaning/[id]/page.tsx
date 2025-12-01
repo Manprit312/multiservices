@@ -14,6 +14,7 @@ import {
 
 } from "lucide-react";
 import UnifiedHeader from "@/components/UnifiedHeader";
+import RequireAuth from "@/components/RequireAuth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -125,7 +126,7 @@ function CleaningDetailContent() {
   }
 
   return (
-    <>
+    <RequireAuth>
       <UnifiedHeader />
       <main className="min-h-screen bg-gray-50 pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -331,7 +332,7 @@ function CleaningDetailContent() {
           </div>
         </div>
       </main>
-    </>
+    </RequireAuth>
   );
 }
 

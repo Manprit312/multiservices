@@ -20,6 +20,7 @@ import {
 
 } from "lucide-react";
 import UnifiedHeader from "@/components/UnifiedHeader";
+import RequireAuth from "@/components/RequireAuth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -169,7 +170,7 @@ function HotelBookingContent() {
       <>
         <UnifiedHeader />
         <div className="h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
         </div>
       </>
     );
@@ -189,9 +190,9 @@ function HotelBookingContent() {
   const minDate = new Date().toISOString().split("T")[0];
 
   return (
-    <>
+    <RequireAuth>
       <UnifiedHeader />
-      <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white pt-16">
+      <main className="min-h-screen bg-gradient-to-b from-green-50 to-white pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           {/* Progress Steps */}
           <div className="mb-8">
@@ -210,21 +211,21 @@ function HotelBookingContent() {
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
                           isActive
-                            ? "bg-blue-600 text-white"
+                            ? "bg-green-600 text-white"
                             : "bg-gray-200 text-gray-500"
                         }`}
                       >
                         {index + 1}
                       </div>
                       <span
-                        className={`text-xs mt-1 ${isActive ? "text-blue-600 font-semibold" : "text-gray-500"}`}
+                        className={`text-xs mt-1 ${isActive ? "text-green-600 font-semibold" : "text-gray-500"}`}
                       >
                         {item.label}
                       </span>
                     </div>
                     {index < 3 && (
                       <div
-                        className={`h-0.5 w-8 sm:w-16 ${isActive ? "bg-blue-600" : "bg-gray-200"}`}
+                        className={`h-0.5 w-8 sm:w-16 ${isActive ? "bg-green-600" : "bg-gray-200"}`}
                       />
                     )}
                   </React.Fragment>
@@ -293,7 +294,7 @@ function HotelBookingContent() {
                               }
                             }}
                             min={minDate}
-                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-black cursor-pointer"
+                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-black cursor-pointer"
                           />
                         </div>
                       </div>
@@ -313,13 +314,13 @@ function HotelBookingContent() {
                               bookingData.checkIn ||
                               minDate
                             }
-                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-black cursor-pointer"
+                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-black cursor-pointer"
                           />
                         </div>
                       </div>
                     </div>
                     {nights > 0 && (
-                      <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+                      <div className="mt-6 p-4 bg-green-50 rounded-xl">
                         <p className="text-sm text-gray-600">
                           <span className="font-semibold">{nights}</span> {nights === 1 ? "night" : "nights"} selected
                         </p>
@@ -329,7 +330,7 @@ function HotelBookingContent() {
                       <button
                         onClick={handleNext}
                         disabled={!bookingData.checkIn || !bookingData.checkOut}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+                        className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                       >
                         Continue <ArrowRight className="w-4 h-4" />
                       </button>
@@ -369,7 +370,7 @@ function HotelBookingContent() {
                               guests: Number(e.target.value),
                             })
                           }
-                          className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none appearance-none text-black cursor-pointer"
+                          className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none appearance-none text-black cursor-pointer"
                         >
                           {Array.from({ length: hotel.capacity || 6 }, (_, i) => i + 1).map(
                             (num) => (
@@ -433,7 +434,7 @@ function HotelBookingContent() {
                               setBookingData({ ...bookingData, guestName: e.target.value })
                             }
                             placeholder="Enter your full name"
-                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-black placeholder:text-gray-500"
+                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-black placeholder:text-gray-500"
                             required
                           />
                         </div>
@@ -451,7 +452,7 @@ function HotelBookingContent() {
                               setBookingData({ ...bookingData, guestEmail: e.target.value })
                             }
                             placeholder="your.email@example.com"
-                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-black placeholder:text-gray-500"
+                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-black placeholder:text-gray-500"
                             required
                           />
                         </div>
@@ -469,7 +470,7 @@ function HotelBookingContent() {
                               setBookingData({ ...bookingData, guestPhone: e.target.value })
                             }
                             placeholder="+91 98765 43210"
-                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-black placeholder:text-gray-500"
+                            className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none text-black placeholder:text-gray-500"
                           />
                         </div>
                       </div>
@@ -484,7 +485,7 @@ function HotelBookingContent() {
                       <button
                         onClick={handleNext}
                         disabled={!bookingData.guestName || !bookingData.guestEmail}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+                        className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                       >
                         Continue <ArrowRight className="w-4 h-4" />
                       </button>
@@ -543,7 +544,7 @@ function HotelBookingContent() {
                           <div className="border-t pt-3 mt-3">
                             <div className="flex justify-between">
                               <span className="font-bold text-gray-900">Total Amount:</span>
-                              <span className="font-bold text-blue-600 text-lg">
+                              <span className="font-bold text-green-600 text-lg">
                                 ₹{totalAmount.toLocaleString()}
                               </span>
                             </div>
@@ -622,7 +623,7 @@ function HotelBookingContent() {
                     <div className="flex gap-4 justify-center">
                       <button
                         onClick={() => router.push(`/hotel?provider=${providerId || ""}`)}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition cursor-pointer"
+                        className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition cursor-pointer"
                       >
                         Book Another Hotel
                       </button>
@@ -667,7 +668,7 @@ function HotelBookingContent() {
                           <div className="border-t pt-3 mt-3">
                             <div className="flex justify-between">
                               <span className="font-bold text-lg text-gray-900">Total:</span>
-                              <span className="font-bold text-lg text-blue-600">
+                              <span className="font-bold text-lg text-green-600">
                                 ₹{totalAmount.toLocaleString()}
                               </span>
                             </div>
@@ -687,7 +688,7 @@ function HotelBookingContent() {
           </div>
         </div>
       </main>
-    </>
+    </RequireAuth>
   );
 }
 

@@ -19,7 +19,7 @@ function CleaningHeaderContent() {
   ];
 
   return (
-    <header className="relative z-50">
+    <header className="relative z-[9999]" style={{ position: 'relative', zIndex: 9999 }}>
       {/* Floating Animated Shapes */}
       <motion.div
         animate={{ y: [0, -12, 0] }}
@@ -38,8 +38,21 @@ function CleaningHeaderContent() {
       />
 
       {/* Navbar */}
-      <div className="w-full fixed top-0 left-0 backdrop-blur-lg bg-white/70 shadow-sm border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between font-[Poppins]">
+      <div 
+        className="w-full fixed top-0 left-0 right-0 bg-white shadow-lg border-b-2 border-green-200" 
+        style={{ 
+          position: 'fixed', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          backgroundColor: '#ffffff', 
+          zIndex: 9999,
+          width: '100%',
+          minHeight: '64px',
+          paddingBottom: '12px'
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-6 py-3 sm:py-4 lg:py-5 flex items-center justify-between font-[Poppins]">
           {/* 🌿 Logo with motion & cursor animation */}
           <motion.div
             whileHover={{ scale: 1.1, rotate: -2 }}
@@ -80,7 +93,7 @@ function CleaningHeaderContent() {
           </motion.div>
 
           {/* 🧭 Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-3">
             {navItems.map((item, index) => (
               <motion.div
                 key={item.name}
@@ -90,7 +103,7 @@ function CleaningHeaderContent() {
               >
                 <Link
                   href={item.href}
-                  className="flex items-center gap-2 text-slate-700 hover:text-green-600 font-medium transition-all"
+                  className="flex items-center gap-2 text-slate-700 hover:text-green-600 font-medium transition-all px-4 py-2 rounded-xl border-2 border-green-100 bg-white hover:bg-green-50 hover:border-green-300 shadow-sm hover:shadow-md"
                 >
                   {item.icon}
                   {item.name}
@@ -116,29 +129,81 @@ function CleaningHeaderContent() {
           </button>
         </div>
 
-        {/* 📱 Mobile Dropdown Menu */}
+        {/* 📱 Mobile Dropdown Menu - Slides from right */}
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden bg-white/95 backdrop-blur-md border-t border-green-100 px-6 py-4 flex flex-col gap-3"
-          >
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-2 text-slate-700 hover:text-green-600 font-medium"
-              >
-                {item.icon}
-                {item.name}
-              </Link>
-            ))}
-            <button className="mt-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white px-5 py-2 rounded-full font-semibold shadow-md hover:shadow-lg">
-              Book Now
-            </button>
-          </motion.div>
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={() => setIsOpen(false)}
+              className="md:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+            />
+            {/* Menu Panel */}
+            <motion.div
+              initial={{ x: "100%", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "100%", opacity: 0 }}
+              transition={{ 
+                type: "spring",
+                damping: 25,
+                stiffness: 200,
+                duration: 0.4
+              }}
+              className="md:hidden fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white/98 backdrop-blur-lg shadow-2xl z-50 flex flex-col border-l border-green-100"
+            >
+              {/* Menu Header */}
+              <div className="flex items-center justify-between p-6 border-b border-green-100">
+                <h2 className="text-green-700 font-bold text-xl">Menu</h2>
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setIsOpen(false)}
+                  className="text-green-700 p-2 rounded-full hover:bg-green-50 transition-colors"
+                >
+                  <X size={24} />
+                </motion.button>
+              </div>
+
+              {/* Menu Content */}
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+                {/* Menu Items */}
+                <div className="flex flex-col gap-2">
+                  {navItems.map((item, index) => (
+                    <motion.div
+                      key={item.name}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 + index * 0.05, type: "spring", stiffness: 200 }}
+                    >
+                      <Link
+                        href={item.href}
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-3 text-slate-700 hover:text-green-600 font-medium py-3.5 px-4 rounded-xl border-2 border-green-100 bg-white hover:bg-green-50 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                      >
+                        <span className="text-emerald-400">{item.icon}</span>
+                        <span>{item.name}</span>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* CTA Button */}
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, type: "spring" }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="mt-6 w-full bg-gradient-to-r from-green-600 to-emerald-500 text-white px-5 py-3.5 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  Book Now
+                </motion.button>
+              </div>
+            </motion.div>
+          </>
         )}
       </div>
     </header>
