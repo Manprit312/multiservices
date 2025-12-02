@@ -87,8 +87,6 @@ function RegisterProviderContent() {
         throw new Error(data.message || "Failed to create provider");
       }
 
-      const providerData = await providerRes.json();
-
       // Refresh user data to get updated role
       await refreshUserData();
       

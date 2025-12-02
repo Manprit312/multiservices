@@ -16,6 +16,8 @@ interface Hotel {
   amenities: string[];
   outsideFoodAllowed: boolean;
   images: string[];
+  rating?: number;
+  reviewCount?: number;
 }
 
 export default function EditHotelPage() {
@@ -36,6 +38,8 @@ export default function EditHotelPage() {
     description: "",
     amenities: "",
     outsideFoodAllowed: false,
+    rating: "0",
+    reviewCount: "0",
   });
   
   const [existingImages, setExistingImages] = useState<string[]>([]);
@@ -67,6 +71,8 @@ export default function EditHotelPage() {
           description: hotel.description || "",
           amenities: hotel.amenities?.join(", ") || "",
           outsideFoodAllowed: hotel.outsideFoodAllowed || false,
+          rating: hotel.rating?.toString() || "0",
+          reviewCount: hotel.reviewCount?.toString() || "0",
         });
         setExistingImages(hotel.images || []);
       }
@@ -129,6 +135,8 @@ export default function EditHotelPage() {
       formDataToSend.append("description", formData.description);
       formDataToSend.append("amenities", formData.amenities);
       formDataToSend.append("outsideFoodAllowed", formData.outsideFoodAllowed.toString());
+      formDataToSend.append("rating", formData.rating);
+      formDataToSend.append("reviewCount", formData.reviewCount);
       formDataToSend.append("existingImages", JSON.stringify(existingImages));
       
       newImages.forEach((image) => {
@@ -226,6 +234,34 @@ export default function EditHotelPage() {
                 min="1"
                 value={formData.capacity}
                 onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rating (0-10)
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="10"
+                step="0.1"
+                value={formData.rating}
+                onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Review Count
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.reviewCount}
+                onChange={(e) => setFormData({ ...formData, reviewCount: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>

@@ -1,3 +1,15 @@
+/**
+ * NextAuth Route Handler
+ * 
+ * NOTE: This is a thin wrapper for Next.js integration.
+ * All actual authentication logic is handled in the backend:
+ * - Backend routes: /backend/routes/authRoutes.js
+ * - Backend controllers: /backend/controllers/authController.js
+ * - Firebase auth: /backend/controllers/firebaseAuthController.js
+ * 
+ * This route only provides Next.js session management and calls backend APIs.
+ */
+
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";

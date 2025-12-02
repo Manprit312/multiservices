@@ -45,16 +45,6 @@ const poppins = Poppins({
   display: "swap",
 });
 
-interface Provider {
-  _id: string;
-  name: string;
-  description?: string;
-  logo?: string;
-  rating?: number;
-  specialties?: string[];
-  city?: string;
-}
-
 function ServiHubHomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();

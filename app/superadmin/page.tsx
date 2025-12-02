@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { Users, Building2, Eye, Settings } from "lucide-react";
+import { Users, Building2, Eye } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 

@@ -61,11 +61,11 @@ function TaxiDetailContent() {
         if (data.success && data.ride) {
           setRide(data.ride);
           // Pre-fill booking form with ride data
-          setBookingData({
-            ...bookingData,
+          setBookingData((prev) => ({
+            ...prev,
             pickup: data.ride.pickup || "",
             drop: data.ride.drop || "",
-          });
+          }));
         }
       } catch (err) {
         console.error("Failed to fetch ride:", err);

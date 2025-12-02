@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { 
   Search, 
@@ -11,7 +11,6 @@ import {
   Users, 
   Star, 
   X,
-  ArrowRight,
   Sparkles,
   MapPin,
   Filter,
@@ -43,7 +42,6 @@ interface Hotel {
 const commonAmenities = ["WiFi", "AC", "Parking", "Restaurant", "Pool", "Gym", "Spa", "Breakfast", "Room Service"];
 
 function HotelPageContent() {
-  const router = useRouter();
 
   // Search form state
   const [location, setLocation] = useState("");

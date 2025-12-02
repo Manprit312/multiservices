@@ -121,7 +121,7 @@ export default function SuperAdminLayout({
         </header>
 
         {/* Main Content */}
-        <main className="lg:pl-64 p-6 pt-6 lg:pt-6">
+        <main className="lg:pl-64 lg:ml-4 p-6 pt-6 lg:pt-6">
           {children}
         </main>
       </div>

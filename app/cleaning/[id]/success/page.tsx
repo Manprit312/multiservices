@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, Suspense } from "react";
-import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { CheckCircle, Home, Calendar, MapPin, Phone } from "lucide-react";
 import UnifiedHeader from "@/components/UnifiedHeader";
 import Link from "next/link";
 
 function SuccessContent() {
-  const params = useParams();
 
   useEffect(() => {
     // Clear any stored booking data

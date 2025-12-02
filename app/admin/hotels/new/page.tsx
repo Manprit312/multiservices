@@ -20,6 +20,8 @@ export default function NewHotelPage() {
     description: "",
     amenities: "",
     outsideFoodAllowed: false,
+    rating: "0",
+    reviewCount: "0",
   });
   
   const [images, setImages] = useState<File[]>([]);
@@ -68,6 +70,8 @@ export default function NewHotelPage() {
       formDataToSend.append("description", formData.description);
       formDataToSend.append("amenities", formData.amenities);
       formDataToSend.append("outsideFoodAllowed", formData.outsideFoodAllowed.toString());
+      formDataToSend.append("rating", formData.rating);
+      formDataToSend.append("reviewCount", formData.reviewCount);
       formDataToSend.append("provider", userData?.provider || "");
       
       images.forEach((image) => {
@@ -166,6 +170,36 @@ export default function NewHotelPage() {
                 onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="2"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rating (0-10)
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="10"
+                step="0.1"
+                value={formData.rating}
+                onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="0"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Review Count
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.reviewCount}
+                onChange={(e) => setFormData({ ...formData, reviewCount: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="0"
               />
             </div>
           </div>

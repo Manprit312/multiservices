@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, Edit, Trash2, Search, Eye } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Provider {
   _id: string;
@@ -170,10 +171,13 @@ export default function SuperAdminProvidersPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       {provider.logo && (
-                        <img
+                        <Image
                           src={provider.logo}
                           alt={provider.name}
-                          className="w-10 h-10 rounded-full mr-3"
+                          width={40}
+                          height={40}
+                          className="w-10 h-10 rounded-full mr-3 object-cover"
+                          unoptimized
                         />
                       )}
                       <div>

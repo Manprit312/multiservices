@@ -94,7 +94,7 @@ function PaymentContent() {
         alert(data.message || "Payment failed. Please try again.");
         setProcessing(false);
       }
-    } catch (err) {
+    } catch {
       alert("Something went wrong. Please try again.");
       setProcessing(false);
     }

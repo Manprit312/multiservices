@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import { useSearchParams, usePathname } from "next/navigation";
+import React, { useState, Suspense } from "react";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Home, BrushCleaning, Hotel, Car, Sparkles, Phone, Menu, X, Search, User, Building2, LogOut } from "lucide-react";
 import Link from "next/link";
@@ -51,12 +51,6 @@ const colorThemes = {
     glow: "rgba(16,185,129,0.7)",
   },
 };
-
-interface Provider {
-  _id: string;
-  name: string;
-  logo?: string;
-}
 
 function UnifiedHeaderContent() {
   const [isOpen, setIsOpen] = useState(false);
