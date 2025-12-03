@@ -47,6 +47,8 @@ function HotelSingleContent() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeTab, setActiveTab] = useState("overview");
+  const [relatedHotels, setRelatedHotels] = useState<Hotel[]>([]);
+  const [loadingRelated, setLoadingRelated] = useState(false);
 
   useEffect(() => {
     async function fetchHotel() {
@@ -59,6 +61,11 @@ function HotelSingleContent() {
           if (process.env.NODE_ENV === 'development') {
             console.log("Hotel images:", data.hotel.images);
           }
+          
+          // Fetch related hotels after main hotel is loaded
+          if (data.hotel.location) {
+            fetchRelatedHotels(data.hotel.location, data.hotel._id);
+          }
         }
       } catch (err) {
         if (process.env.NODE_ENV === 'development') {
@@ -70,6 +77,30 @@ function HotelSingleContent() {
     }
     fetchHotel();
   }, [id]);
+
+  const fetchRelatedHotels = async (location: string, currentHotelId: string) => {
+    setLoadingRelated(true);
+    try {
+      // Extract city from location (assuming format like "City, State" or just "City")
+      const city = location.split(',')[0].trim();
+      
+      const res = await fetch(`${API_BASE}/api/hotels?location=${encodeURIComponent(city)}&limit=4`);
+      const data = await res.json();
+      if (data.success && data.hotels) {
+        // Filter out current hotel and limit to 4
+        const filtered = data.hotels
+          .filter((h: Hotel) => h._id !== currentHotelId)
+          .slice(0, 4);
+        setRelatedHotels(filtered);
+      }
+    } catch (err) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Failed to fetch related hotels:", err);
+      }
+    } finally {
+      setLoadingRelated(false);
+    }
+  };
 
   if (loading)
     return (
@@ -457,6 +488,97 @@ function HotelSingleContent() {
           </div>
         </div>
       </section>
+
+      {/* Related Hotels Section */}
+      {relatedHotels.length > 0 && (
+        <section className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
+          <div className="mb-4 sm:mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Similar hotels you might like</h2>
+            <p className="text-gray-600 text-sm sm:text-base mt-1">More options in the same area</p>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {relatedHotels.map((relatedHotel) => {
+              const relatedRating = relatedHotel.rating || 4.5;
+              const relatedStars = Math.round(relatedRating / 2); // Convert 0-10 scale to 0-5 stars
+              const relatedRatingDisplay = (relatedRating / 2).toFixed(1); // Display as 0-5 scale
+              const relatedImages = relatedHotel.images && relatedHotel.images.length > 0 
+                ? relatedHotel.images 
+                : ["https://via.placeholder.com/400x300?text=No+Image"];
+              
+              return (
+                <motion.div
+                  key={relatedHotel._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  onClick={() => router.push(`/hotel/${relatedHotel._id}`)}
+                  className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all cursor-pointer overflow-hidden group"
+                >
+                  {/* Image */}
+                  <div className="relative h-48 sm:h-56 overflow-hidden">
+                    <Image
+                      src={relatedImages[0]}
+                      alt={relatedHotel.name}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      unoptimized={relatedImages[0]?.includes('placeholder')}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://via.placeholder.com/400x300?text=Image+Not+Found";
+                      }}
+                    />
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xs font-semibold text-gray-900">{relatedRatingDisplay}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="p-4">
+                    <h3 className="font-bold text-gray-900 mb-1 line-clamp-1 text-sm sm:text-base">
+                      {relatedHotel.name}
+                    </h3>
+                    <div className="flex items-center gap-1 mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-3 h-3 ${
+                            i < relatedStars ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mb-2">
+                      <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="line-clamp-1">{relatedHotel.location}</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                      <div>
+                        <span className="text-lg sm:text-xl font-bold text-green-600">
+                          ₹{relatedHotel.price}
+                        </span>
+                        <span className="text-xs sm:text-sm text-gray-500">/night</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/hotel/${relatedHotel._id}`);
+                        }}
+                        className="text-green-600 hover:text-green-700 text-xs sm:text-sm font-semibold"
+                      >
+                        View →
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </main>
     </>
   );

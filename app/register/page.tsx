@@ -330,6 +330,19 @@ function RegisterForm() {
                 </a>
               </p>
             </div>
+
+            {/* Business Registration Button */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => router.push("/register-provider")}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-500 text-white py-3.5 rounded-xl font-semibold hover:shadow-xl transition-all flex items-center justify-center gap-2 shadow-lg"
+              >
+                <Sparkles className="w-4 h-4" />
+                Business Registration
+              </motion.button>
+            </div>
           </motion.div>
         </div>
       </div>
